@@ -2,15 +2,19 @@
 #include <vector>
 #include <string>
 #include <set>
+#include <map>
 #include <queue>
 #include <cassert>
 #include <fstream>
+#include <sstream>
 #include <pthread.h>
 
 std::multiset<std::string> x;
 std::queue<std::string> y;
+std::map<std::string, int> z;
 pthread_mutex_t x_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t y_mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t z_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 void *producer(void *arg) {
     pthread_mutex_lock(&x_mutex);
@@ -25,6 +29,21 @@ void *producer(void *arg) {
         pthread_mutex_lock(&y_mutex);
         y.push(line);
         pthread_mutex_unlock(&y_mutex);
+    }
+}
+
+void *consumer(void *arg) {
+    pthread_mutex_lock(&y_mutex);
+    std::string line = y.front();
+    y.pop();
+    pthread_mutex_unlock(&y_mutex);
+
+    std::stringstream ss(line);
+    std::string word;
+    while (ss >> word) {
+        pthread_mutex_lock(&z_mutex);
+        z[word]++;
+        pthread_mutex_unlock(&z_mutex);
     }
 }
 
