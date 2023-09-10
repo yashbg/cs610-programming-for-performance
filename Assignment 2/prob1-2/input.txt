@@ -1,0 +1,2 @@
+input/file1
+input/file2
