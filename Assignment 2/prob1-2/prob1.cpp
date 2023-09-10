@@ -30,6 +30,8 @@ void *producer(void *arg) {
         y.push(line);
         pthread_mutex_unlock(&y_mutex);
     }
+
+    return NULL;
 }
 
 void *consumer(void *arg) {
@@ -45,6 +47,8 @@ void *consumer(void *arg) {
         z[word]++;
         pthread_mutex_unlock(&z_mutex);
     }
+
+    return NULL;
 }
 
 int main(int argc, char *argv[]) {
@@ -59,12 +63,25 @@ int main(int argc, char *argv[]) {
 
     int n = x.size();
 
-    pthread_t threads[n];
+    pthread_t producerThreads[n];
     for (int i = 0; i < n; i++) {
-        int errcode = pthread_create(&threads[i], NULL, producer, NULL);
+        int errcode = pthread_create(&producerThreads[i], NULL, producer, NULL);
         if (errcode) {
             std::runtime_error("Error creating thread, errcode = " + errcode);
         }
+    }
+
+    int m = n;
+    pthread_t consumerThreads[m];
+    for (int i = 0; i < m; i++) {
+        int errcode = pthread_create(&consumerThreads[i], NULL, consumer, NULL);
+        if (errcode) {
+            std::runtime_error("Error creating thread, errcode = " + errcode);
+        }
+    }
+
+    for (auto &word : z) {
+        std::cout << word.first << " " << word.second << std::endl;
     }
 
     return 0;
