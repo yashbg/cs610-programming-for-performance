@@ -110,6 +110,7 @@ void *consumer(void *arg) {
                 throw std::runtime_error("Error locking mutex, errcode = " + std::to_string(errcode));
             }
 
+            // remove punctuations
             std::string finalWord;
             for (int i = 0; i < word.size(); i++) {
                 if (('A' <= word[i] && word[i] <= 'Z') || ('a' <= word[i] && word[i] <= 'z')) {
