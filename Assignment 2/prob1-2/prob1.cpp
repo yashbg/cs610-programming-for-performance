@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <cstring>
 #include <set>
 #include <map>
 #include <queue>
@@ -8,6 +9,14 @@
 #include <fstream>
 #include <sstream>
 #include <pthread.h>
+#include <semaphore.h>
+#include <cerrno>
+
+int n;
+int producersFinished = 0;
+sem_t full;
+sem_t empty;
+pthread_mutex_t pf_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 std::multiset<std::string> x;
 std::queue<std::string> y;
@@ -17,35 +26,131 @@ pthread_mutex_t y_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t z_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 void *producer(void *arg) {
-    pthread_mutex_lock(&x_mutex);
+    int errcode = pthread_mutex_lock(&x_mutex);
+    if (errcode) {
+        throw std::runtime_error("Error locking mutex, errcode = " + std::to_string(errcode));
+    }
+    
     std::string file = *x.begin();
     x.erase(x.begin());
-    pthread_mutex_unlock(&x_mutex);
+
+    errcode = pthread_mutex_unlock(&x_mutex);
+    if (errcode) {
+        throw std::runtime_error("Error unlocking mutex, errcode = " + std::to_string(errcode));
+    }
 
     std::ifstream ifs(file);
     std::string line;
 
     while (getline(ifs, line)) {
-        pthread_mutex_lock(&y_mutex);
+        if (sem_wait(&empty)) {
+            throw std::runtime_error("Error waiting on semaphore" + std::string(std::strerror(errno)));
+        }
+
+        errcode = pthread_mutex_lock(&y_mutex);
+        if (errcode) {
+            throw std::runtime_error("Error locking mutex, errcode = " + std::to_string(errcode));
+        }
+        
         y.push(line);
-        pthread_mutex_unlock(&y_mutex);
+
+        errcode = pthread_mutex_unlock(&y_mutex);
+        if (errcode) {
+            throw std::runtime_error("Error unlocking mutex, errcode = " + std::to_string(errcode));
+        }
+
+        if (sem_post(&full)) {
+            throw std::runtime_error("Error posting on semaphore" + std::string(std::strerror(errno)));
+        }
+    }
+
+    errcode = pthread_mutex_lock(&pf_mutex);
+    if (errcode) {
+        throw std::runtime_error("Error locking mutex, errcode = " + std::to_string(errcode));
+    }
+    
+    producersFinished++;
+
+    errcode = pthread_mutex_unlock(&pf_mutex);
+    if (errcode) {
+        throw std::runtime_error("Error unlocking mutex, errcode = " + std::to_string(errcode));
     }
 
     return NULL;
 }
 
 void *consumer(void *arg) {
-    pthread_mutex_lock(&y_mutex);
-    std::string line = y.front();
-    y.pop();
-    pthread_mutex_unlock(&y_mutex);
+    while (true) {
+        int errcode = pthread_mutex_lock(&pf_mutex);
+        if (errcode) {
+            throw std::runtime_error("Error locking mutex, errcode = " + std::to_string(errcode));
+        }
+        
+        errcode = pthread_mutex_lock(&y_mutex);
+        if (errcode) {
+            throw std::runtime_error("Error locking mutex, errcode = " + std::to_string(errcode));
+        }
+        
+        if (producersFinished == n && y.empty()) {
+            errcode = pthread_mutex_unlock(&y_mutex);
+            if (errcode) {
+                throw std::runtime_error("Error unlocking mutex, errcode = " + std::to_string(errcode));
+            }
 
-    std::stringstream ss(line);
-    std::string word;
-    while (ss >> word) {
-        pthread_mutex_lock(&z_mutex);
-        z[word]++;
-        pthread_mutex_unlock(&z_mutex);
+            errcode = pthread_mutex_unlock(&pf_mutex);
+            if (errcode) {
+                throw std::runtime_error("Error unlocking mutex, errcode = " + std::to_string(errcode));
+            }
+
+            break;
+        }
+
+        errcode = pthread_mutex_unlock(&y_mutex);
+        if (errcode) {
+            throw std::runtime_error("Error unlocking mutex, errcode = " + std::to_string(errcode));
+        }
+
+        errcode = pthread_mutex_unlock(&pf_mutex);
+        if (errcode) {
+            throw std::runtime_error("Error unlocking mutex, errcode = " + std::to_string(errcode));
+        }
+
+        if (sem_wait(&full)) {
+            throw std::runtime_error("Error waiting on semaphore" + std::string(std::strerror(errno)));
+        }
+
+        errcode = pthread_mutex_lock(&y_mutex);
+        if (errcode) {
+            throw std::runtime_error("Error locking mutex, errcode = " + std::to_string(errcode));
+        }
+        
+        std::string line = y.front();
+        y.pop();
+
+        errcode = pthread_mutex_unlock(&y_mutex);
+        if (errcode) {
+            throw std::runtime_error("Error unlocking mutex, errcode = " + std::to_string(errcode));
+        }
+
+        if (sem_post(&empty)) {
+            throw std::runtime_error("Error posting on semaphore" + std::string(std::strerror(errno)));
+        }
+
+        std::stringstream ss(line);
+        std::string word;
+        while (ss >> word) {
+            errcode = pthread_mutex_lock(&z_mutex);
+            if (errcode) {
+                throw std::runtime_error("Error locking mutex, errcode = " + std::to_string(errcode));
+            }
+            
+            z[word]++;
+
+            errcode = pthread_mutex_unlock(&z_mutex);
+            if (errcode) {
+                throw std::runtime_error("Error unlocking mutex, errcode = " + std::to_string(errcode));
+            }
+        }
     }
 
     return NULL;
@@ -61,13 +166,21 @@ int main(int argc, char *argv[]) {
         x.insert(file);
     }
 
-    int n = x.size();
+    n = x.size();
+
+    if (sem_init(&full, 0, 0)) {
+        throw std::runtime_error("Error initializing semaphore" + std::string(std::strerror(errno)));
+    }
+    
+    if (sem_init(&empty, 0, n)) {
+        throw std::runtime_error("Error initializing semaphore" + std::string(std::strerror(errno)));
+    }
 
     pthread_t producerThreads[n];
     for (int i = 0; i < n; i++) {
         int errcode = pthread_create(&producerThreads[i], NULL, producer, NULL);
         if (errcode) {
-            std::runtime_error("Error creating thread, errcode = " + errcode);
+            throw std::runtime_error("Error creating thread, errcode = " + std::to_string(errcode));
         }
     }
 
@@ -76,7 +189,21 @@ int main(int argc, char *argv[]) {
     for (int i = 0; i < m; i++) {
         int errcode = pthread_create(&consumerThreads[i], NULL, consumer, NULL);
         if (errcode) {
-            std::runtime_error("Error creating thread, errcode = " + errcode);
+            throw std::runtime_error("Error creating thread, errcode = " + std::to_string(errcode));
+        }
+    }
+
+    for (int i = 0; i < n; i++) {
+        int errcode = pthread_join(producerThreads[i], NULL);
+        if (errcode) {
+            throw std::runtime_error("Error joining thread, errcode = " + std::to_string(errcode));
+        }
+    }
+
+    for (int i = 0; i < m; i++) {
+        int errcode = pthread_join(consumerThreads[i], NULL);
+        if (errcode) {
+            throw std::runtime_error("Error joining thread, errcode = " + std::to_string(errcode));
         }
     }
 
