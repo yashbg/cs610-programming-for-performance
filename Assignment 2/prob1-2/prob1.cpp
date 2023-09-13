@@ -109,8 +109,15 @@ void *consumer(void *arg) {
             if (errcode) {
                 throw std::runtime_error("Error locking mutex, errcode = " + std::to_string(errcode));
             }
+
+            std::string finalWord;
+            for (int i = 0; i < word.size(); i++) {
+                if (('A' <= word[i] && word[i] <= 'Z') || ('a' <= word[i] && word[i] <= 'z')) {
+                    finalWord += word[i];
+                }
+            }
             
-            z[word]++;
+            z[finalWord]++;
 
             errcode = pthread_mutex_unlock(&z_mutex);
             if (errcode) {
