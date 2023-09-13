@@ -12,6 +12,8 @@
 #include <semaphore.h>
 #include <cerrno>
 
+#define MAX_QUEUE_SIZE 10
+
 int n;
 sem_t full;
 sem_t empty;
@@ -146,7 +148,7 @@ int main(int argc, char *argv[]) {
         throw std::runtime_error("Error initializing semaphore" + std::string(std::strerror(errno)));
     }
     
-    if (sem_init(&empty, 0, n)) {
+    if (sem_init(&empty, 0, MAX_QUEUE_SIZE)) {
         throw std::runtime_error("Error initializing semaphore" + std::string(std::strerror(errno)));
     }
 
