@@ -4,25 +4,18 @@
 #include <cstring>
 #include <set>
 #include <map>
-#include <queue>
 #include <cassert>
 #include <fstream>
 #include <sstream>
 #include <pthread.h>
-#include <semaphore.h>
-#include <cerrno>
+#include "concurrentqueue.h"
 
 #define MAX_QUEUE_SIZE 10
 
-int n;
-sem_t full;
-sem_t empty;
-
 std::multiset<std::string> x;
-std::queue<std::string> y;
+moodycamel::ConcurrentQueue<std::string> y(MAX_QUEUE_SIZE);
 std::map<std::string, int> z;
 pthread_mutex_t x_mutex = PTHREAD_MUTEX_INITIALIZER;
-pthread_mutex_t y_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t z_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 void *producer(void *arg) {
@@ -43,25 +36,7 @@ void *producer(void *arg) {
     std::string line;
 
     while (getline(ifs, line)) {
-        if (sem_wait(&empty)) {
-            throw std::runtime_error("Error waiting on semaphore" + std::string(std::strerror(errno)));
-        }
-
-        errcode = pthread_mutex_lock(&y_mutex);
-        if (errcode) {
-            throw std::runtime_error("Error locking mutex, errcode = " + std::to_string(errcode));
-        }
-        
-        y.push(line);
-
-        errcode = pthread_mutex_unlock(&y_mutex);
-        if (errcode) {
-            throw std::runtime_error("Error unlocking mutex, errcode = " + std::to_string(errcode));
-        }
-
-        if (sem_post(&full)) {
-            throw std::runtime_error("Error posting on semaphore" + std::string(std::strerror(errno)));
-        }
+        while (!y.try_enqueue(line));
     }
 
     return NULL;
@@ -69,45 +44,20 @@ void *producer(void *arg) {
 
 void *consumer(void *arg) {
     while (true) {
-        if (sem_wait(&full)) {
-            throw std::runtime_error("Error waiting on semaphore" + std::string(std::strerror(errno)));
-        }
+        std::string line;
+        while (!y.try_dequeue(line));
 
-        int errcode = pthread_mutex_lock(&y_mutex);
-        if (errcode) {
-            throw std::runtime_error("Error locking mutex, errcode = " + std::to_string(errcode));
-        }
-        
-        std::string line = y.front();
         if (line == "") {
             // poison pill
-            errcode = pthread_mutex_unlock(&y_mutex);
-            if (errcode) {
-                throw std::runtime_error("Error unlocking mutex, errcode = " + std::to_string(errcode));
-            }
-
-            if (sem_post(&full)) {
-                throw std::runtime_error("Error posting on semaphore" + std::string(std::strerror(errno)));
-            }
+            while (!y.try_enqueue(line));
 
             return NULL;
-        }
-
-        y.pop();
-
-        errcode = pthread_mutex_unlock(&y_mutex);
-        if (errcode) {
-            throw std::runtime_error("Error unlocking mutex, errcode = " + std::to_string(errcode));
-        }
-
-        if (sem_post(&empty)) {
-            throw std::runtime_error("Error posting on semaphore" + std::string(std::strerror(errno)));
         }
 
         std::stringstream ss(line);
         std::string word;
         while (ss >> word) {
-            errcode = pthread_mutex_lock(&z_mutex);
+            int errcode = pthread_mutex_lock(&z_mutex);
             if (errcode) {
                 throw std::runtime_error("Error locking mutex, errcode = " + std::to_string(errcode));
             }
@@ -142,15 +92,7 @@ int main(int argc, char *argv[]) {
         x.insert(file);
     }
 
-    n = x.size();
-
-    if (sem_init(&full, 0, 0)) {
-        throw std::runtime_error("Error initializing semaphore" + std::string(std::strerror(errno)));
-    }
-    
-    if (sem_init(&empty, 0, MAX_QUEUE_SIZE)) {
-        throw std::runtime_error("Error initializing semaphore" + std::string(std::strerror(errno)));
-    }
+    int n = x.size();
 
     pthread_t producerThreads[n];
     for (int i = 0; i < n; i++) {
@@ -177,25 +119,8 @@ int main(int argc, char *argv[]) {
     }
 
     // push poison pill
-    if (sem_wait(&empty)) {
-        throw std::runtime_error("Error waiting on semaphore" + std::string(std::strerror(errno)));
-    }
-
-    int errcode = pthread_mutex_lock(&y_mutex);
-    if (errcode) {
-        throw std::runtime_error("Error locking mutex, errcode = " + std::to_string(errcode));
-    }
-
-    y.push("");
-
-    errcode = pthread_mutex_unlock(&y_mutex);
-    if (errcode) {
-        throw std::runtime_error("Error unlocking mutex, errcode = " + std::to_string(errcode));
-    }
-
-    if (sem_post(&full)) {
-        throw std::runtime_error("Error posting on semaphore" + std::string(std::strerror(errno)));
-    }
+    std::string poisonPill = "";
+    while (!y.try_enqueue(poisonPill));
 
     for (int i = 0; i < m; i++) {
         int errcode = pthread_join(consumerThreads[i], NULL);
