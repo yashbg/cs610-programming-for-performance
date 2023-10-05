@@ -4,6 +4,7 @@
 #include <iostream>
 #include <sys/time.h>
 #include <unistd.h>
+#include <malloc.h>
 
 using std::cout;
 using std::endl;
@@ -219,6 +220,82 @@ void blocking4x4_ivdep(double** A, const double* x, double* y_opt, double* z_opt
   }
 }
 
+void unroll_jam4_ivdep_restrict(double** __restrict__ A, const double* __restrict__ x, double* __restrict__ y_opt, double* __restrict__ z_opt) {
+  for (int i = 0; i < N; i += 4) {
+    #pragma GCC ivdep
+    for (int j = 0; j < N; j++) {
+      y_opt[j] = y_opt[j] + A[i][j] * x[i];
+      z_opt[j] = z_opt[j] + A[j][i] * x[i];
+
+      y_opt[j] = y_opt[j] + A[i + 1][j] * x[i + 1];
+      z_opt[j] = z_opt[j] + A[j][i + 1] * x[i + 1];
+
+      y_opt[j] = y_opt[j] + A[i + 2][j] * x[i + 2];
+      z_opt[j] = z_opt[j] + A[j][i + 2] * x[i + 2];
+
+      y_opt[j] = y_opt[j] + A[i + 3][j] * x[i + 3];
+      z_opt[j] = z_opt[j] + A[j][i + 3] * x[i + 3];
+    }
+  }
+}
+
+void blocking4x4_ivdep_restrict(double** __restrict__ A, const double* __restrict__ x, double* __restrict__ y_opt, double* __restrict__ z_opt) {
+  for (int it = 0; it < N; it += 4) {
+    for (int jt = 0; jt < N; jt += 4) {
+      for (int i = it; i < it + 4; i++) {
+        #pragma GCC ivdep
+        for (int j = jt; j < jt + 4; j++) {
+          y_opt[j] = y_opt[j] + A[i][j] * x[i];
+          z_opt[j] = z_opt[j] + A[j][i] * x[i];
+        }
+      }
+    }
+  }
+}
+
+void unroll_jam4_ivdep_restrict_aligned(double** __restrict__ A, const double* __restrict__ x, double* __restrict__ y_opt, double* __restrict__ z_opt) {
+  A = (double**)__builtin_assume_aligned(A, 32);
+  x = (double*)__builtin_assume_aligned(x, 32);
+  y_opt = (double*)__builtin_assume_aligned(y_opt, 32);
+  z_opt = (double*)__builtin_assume_aligned(z_opt, 32);
+
+  for (int i = 0; i < N; i += 4) {
+    #pragma GCC ivdep
+    for (int j = 0; j < N; j++) {
+      y_opt[j] = y_opt[j] + A[i][j] * x[i];
+      z_opt[j] = z_opt[j] + A[j][i] * x[i];
+
+      y_opt[j] = y_opt[j] + A[i + 1][j] * x[i + 1];
+      z_opt[j] = z_opt[j] + A[j][i + 1] * x[i + 1];
+
+      y_opt[j] = y_opt[j] + A[i + 2][j] * x[i + 2];
+      z_opt[j] = z_opt[j] + A[j][i + 2] * x[i + 2];
+
+      y_opt[j] = y_opt[j] + A[i + 3][j] * x[i + 3];
+      z_opt[j] = z_opt[j] + A[j][i + 3] * x[i + 3];
+    }
+  }
+}
+
+void blocking4x4_ivdep_restrict_aligned(double** __restrict__ A, const double* __restrict__ x, double* __restrict__ y_opt, double* __restrict__ z_opt) {
+  A = (double**)__builtin_assume_aligned(A, 32);
+  x = (double*)__builtin_assume_aligned(x, 32);
+  y_opt = (double*)__builtin_assume_aligned(y_opt, 32);
+  z_opt = (double*)__builtin_assume_aligned(z_opt, 32);
+
+  for (int it = 0; it < N; it += 4) {
+    for (int jt = 0; jt < N; jt += 4) {
+      for (int i = it; i < it + 4; i++) {
+        #pragma GCC ivdep
+        for (int j = jt; j < jt + 4; j++) {
+          y_opt[j] = y_opt[j] + A[i][j] * x[i];
+          z_opt[j] = z_opt[j] + A[j][i] * x[i];
+        }
+      }
+    }
+  }
+}
+
 void avx_version(double** A, double* x, double* y_opt, double* z_opt) {}
 
 int main() {
@@ -248,6 +325,26 @@ int main() {
     y_opt[i] = 1.0;
     z_ref[i] = 2.0;
     z_opt[i] = 2.0;
+    for (int j = 0; j < N; j++) {
+      A[i][j] = (i + 2.0 * j) / (2.0 * N);
+    }
+  }
+
+  double** A_aligned;
+  A_aligned = (double**) memalign(32, N*sizeof(double));
+  for (int i = 0; i < N; i++) {
+    A_aligned[i] = (double*) memalign(32, N*sizeof(double));
+  }
+
+  double *x_aligned, *y_aligned, *z_aligned;
+  x_aligned = (double*) memalign(32, N*sizeof(double));
+  y_aligned = (double*) memalign(32, N*sizeof(double));;
+  z_aligned = (double*) memalign(32, N*sizeof(double));;
+
+  for (int i = 0; i < N; i++) {
+    x_aligned[i] = i;
+    y_aligned[i] = 1.0;
+    z_aligned[i] = 2.0;
     for (int j = 0; j < N; j++) {
       A[i][j] = (i + 2.0 * j) / (2.0 * N);
     }
@@ -460,6 +557,78 @@ int main() {
   for (int i = 0; i < N; i++) {
     y_opt[i] = 1.0;
     z_opt[i] = 2.0;
+  }
+
+  // 4 times outer loop unrolling + inner loop jamming + ivdep + restrict
+  clkbegin = rtclock();
+  for (int it = 0; it < Niter; it++) {
+    unroll_jam4_ivdep_restrict(A, x, y_opt, z_opt);
+  }
+  clkend = rtclock();
+  t = clkend - clkbegin;
+  opttime = t / Niter;
+  cout << "4 times outer loop unrolling + inner loop jamming + ivdep + restrict: Matrix Size = " << N << ", Time = " << t / Niter << " sec, Speedup = " << reftime / opttime << endl;
+  check_result(y_ref, y_opt);
+  cout << endl;
+
+  // Reset
+  for (int i = 0; i < N; i++) {
+    y_opt[i] = 1.0;
+    z_opt[i] = 2.0;
+  }
+
+  // 4x4 blocking + ivdep + restrict
+  clkbegin = rtclock();
+  for (int it = 0; it < Niter; it++) {
+    blocking4x4_ivdep_restrict(A, x, y_opt, z_opt);
+  }
+  clkend = rtclock();
+  t = clkend - clkbegin;
+  opttime = t / Niter;
+  cout << "4x4 blocking + ivdep + restrict: Matrix Size = " << N << ", Time = " << t / Niter << " sec, Speedup = " << reftime / opttime << endl;
+  check_result(y_ref, y_opt);
+  cout << endl;
+
+  // Reset
+  for (int i = 0; i < N; i++) {
+    y_opt[i] = 1.0;
+    z_opt[i] = 2.0;
+  }
+
+  // 4 times outer loop unrolling + inner loop jamming + ivdep + restrict + aligned
+  clkbegin = rtclock();
+  for (int it = 0; it < Niter; it++) {
+    unroll_jam4_ivdep_restrict_aligned(A_aligned, x_aligned, y_aligned, z_aligned);
+  }
+  clkend = rtclock();
+  t = clkend - clkbegin;
+  opttime = t / Niter;
+  cout << "4 times outer loop unrolling + inner loop jamming + ivdep + restrict + aligned: Matrix Size = " << N << ", Time = " << t / Niter << " sec, Speedup = " << reftime / opttime << endl;
+  check_result(y_ref, y_aligned);
+  cout << endl;
+
+  // Reset
+  for (int i = 0; i < N; i++) {
+    y_aligned[i] = 1.0;
+    z_aligned[i] = 2.0;
+  }
+
+  // 4x4 blocking + ivdep + restrict + aligned
+  clkbegin = rtclock();
+  for (int it = 0; it < Niter; it++) {
+    blocking4x4_ivdep_restrict_aligned(A_aligned, x_aligned, y_aligned, z_aligned);
+  }
+  clkend = rtclock();
+  t = clkend - clkbegin;
+  opttime = t / Niter;
+  cout << "4x4 blocking + ivdep + restrict + aligned: Matrix Size = " << N << ", Time = " << t / Niter << " sec, Speedup = " << reftime / opttime << endl;
+  check_result(y_ref, y_aligned);
+  cout << endl;
+
+  // Reset
+  for (int i = 0; i < N; i++) {
+    y_aligned[i] = 1.0;
+    z_aligned[i] = 2.0;
   }
 
   // Version with intinsics
