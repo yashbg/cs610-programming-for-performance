@@ -63,7 +63,7 @@ void loop_interchange(double** A, const double* x, double* y_opt, double* z_opt)
   }
 }
 
-void split(double** A, const double* x, double* y_opt, double* z_opt) {
+void fission(double** A, const double* x, double* y_opt, double* z_opt) {
   for (int i = 0; i < N; i++) {
     for (int j = 0; j < N; j++) {
       y_opt[j] = y_opt[j] + A[i][j] * x[i];
@@ -249,15 +249,15 @@ int main() {
     z_opt[i] = 2.0;
   }
 
-  // Split
+  // Fission
   clkbegin = rtclock();
   for (int it = 0; it < Niter; it++) {
-    split(A, x, y_opt, z_opt);
+    fission(A, x, y_opt, z_opt);
   }
   clkend = rtclock();
   t = clkend - clkbegin;
   opttime = t / Niter;
-  cout << "Split: Matrix Size = " << N << ", Time = " << t / Niter << " sec, Speedup = " << reftime / opttime << endl;
+  cout << "Fission: Matrix Size = " << N << ", Time = " << t / Niter << " sec, Speedup = " << reftime / opttime << endl;
   check_result(y_ref, y_opt);
   cout << endl;
 
