@@ -42,8 +42,14 @@ uint64_t par_sum_omp_nored(uint32_t* A) {
 }
 
 uint64_t par_sum_omp_red(uint32_t* A) {
-  // SB: Write your OpenMP code here
-  return 0;
+  uint64_t seq_sum = 0;
+
+  #pragma omp parallel for reduction(+ : seq_sum)
+  for (int i = 0; i < N; i++) {
+    seq_sum += A[i];
+  }
+  
+  return seq_sum;
 }
 
 uint64_t par_sum_omp_tasks(uint32_t* A) {
