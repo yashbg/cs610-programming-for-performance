@@ -1,0 +1,49 @@
+Reference Version: Matrix Size = 8192, 0.61614 GFLOPS; Time = 0.43567 sec
+
+Optimized Version 1: Loop interchange: Matrix Size = 8192, Time = 0.41871 sec, Speedup = 1.04052
+No differences found between base and test versions
+
+Optimized Version 2: Fission: Matrix Size = 8192, Time = 0.45422 sec, Speedup = 0.95917
+No differences found between base and test versions
+
+Optimized Version 3: 2 times inner loop unrolling: Matrix Size = 8192, Time = 0.42993 sec, Speedup = 1.01336
+No differences found between base and test versions
+
+Optimized Version 4: 2 times outer loop unrolling + inner loop jamming: Matrix Size = 8192, Time = 0.22626 sec, Speedup = 1.92553
+No differences found between base and test versions
+
+Optimized Version 5: 2x2 blocking: Matrix Size = 8192, Time = 0.24262 sec, Speedup = 1.79571
+No differences found between base and test versions
+
+Optimized Version 6: 4 times outer loop unrolling + inner loop jamming: Matrix Size = 8192, Time = 0.18901 sec, Speedup = 2.30508
+No differences found between base and test versions
+
+Optimized Version 7: 4x4 blocking: Matrix Size = 8192, Time = 0.22291 sec, Speedup = 1.95445
+No differences found between base and test versions
+
+Optimized Version 8: 8 times outer loop unrolling + inner loop jamming: Matrix Size = 8192, Time = 0.25403 sec, Speedup = 1.71507
+No differences found between base and test versions
+
+Optimized Version 9: 8x8 blocking: Matrix Size = 8192, Time = 0.18965 sec, Speedup = 2.29725
+No differences found between base and test versions
+
+Optimized Version 10: 4 times outer loop unrolling + inner loop jamming + ivdep: Matrix Size = 8192, Time = 0.18807 sec, Speedup = 2.31654
+No differences found between base and test versions
+
+Optimized Version 11: 4x4 blocking + ivdep: Matrix Size = 8192, Time = 0.22056 sec, Speedup = 1.97531
+No differences found between base and test versions
+
+Optimized Version 12: 4 times outer loop unrolling + inner loop jamming + ivdep + restrict: Matrix Size = 8192, Time = 0.13331 sec, Speedup = 3.26821
+No differences found between base and test versions
+
+Optimized Version 13: 4x4 blocking + ivdep + restrict: Matrix Size = 8192, Time = 0.20007 sec, Speedup = 2.17760
+No differences found between base and test versions
+
+Optimized Version 14: 4 times outer loop unrolling + inner loop jamming + ivdep + restrict + aligned: Matrix Size = 8192, Time = 0.12855 sec, Speedup = 3.38921
+No differences found between base and test versions
+
+Optimized Version 15: 4x4 blocking + ivdep + restrict + aligned: Matrix Size = 8192, Time = 0.20683 sec, Speedup = 2.10640
+No differences found between base and test versions
+
+Intrinsics Version: Optimized Version 14 (4 times outer loop unrolling + inner loop jamming + ivdep + restrict + aligned): Matrix Size = 8192, Time = 0.15412 sec, Speedup = 2.82691
+No differences found between base and test versions
