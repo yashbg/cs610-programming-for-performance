@@ -428,7 +428,7 @@ int main() {
     y_aligned[i] = 1.0;
     z_aligned[i] = 2.0;
     for (int j = 0; j < N; j++) {
-      A[i][j] = (i + 2.0 * j) / (2.0 * N);
+      A_aligned[i][j] = (i + 2.0 * j) / (2.0 * N);
     }
   }
 
