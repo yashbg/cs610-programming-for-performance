@@ -186,6 +186,39 @@ void blocking8x8(double** A, const double* x, double* y_opt, double* z_opt) {
   }
 }
 
+void unroll_jam4_ivdep(double** A, const double* x, double* y_opt, double* z_opt) {
+  for (int i = 0; i < N; i += 4) {
+    #pragma GCC ivdep
+    for (int j = 0; j < N; j++) {
+      y_opt[j] = y_opt[j] + A[i][j] * x[i];
+      z_opt[j] = z_opt[j] + A[j][i] * x[i];
+
+      y_opt[j] = y_opt[j] + A[i + 1][j] * x[i + 1];
+      z_opt[j] = z_opt[j] + A[j][i + 1] * x[i + 1];
+
+      y_opt[j] = y_opt[j] + A[i + 2][j] * x[i + 2];
+      z_opt[j] = z_opt[j] + A[j][i + 2] * x[i + 2];
+
+      y_opt[j] = y_opt[j] + A[i + 3][j] * x[i + 3];
+      z_opt[j] = z_opt[j] + A[j][i + 3] * x[i + 3];
+    }
+  }
+}
+
+void blocking4x4_ivdep(double** A, const double* x, double* y_opt, double* z_opt) {
+  for (int it = 0; it < N; it += 4) {
+    for (int jt = 0; jt < N; jt += 4) {
+      for (int i = it; i < it + 4; i++) {
+        #pragma GCC ivdep
+        for (int j = jt; j < jt + 4; j++) {
+          y_opt[j] = y_opt[j] + A[i][j] * x[i];
+          z_opt[j] = z_opt[j] + A[j][i] * x[i];
+        }
+      }
+    }
+  }
+}
+
 void avx_version(double** A, double* x, double* y_opt, double* z_opt) {}
 
 int main() {
@@ -384,6 +417,42 @@ int main() {
   t = clkend - clkbegin;
   opttime = t / Niter;
   cout << "8x8 blocking: Matrix Size = " << N << ", Time = " << t / Niter << " sec, Speedup = " << reftime / opttime << endl;
+  check_result(y_ref, y_opt);
+  cout << endl;
+
+  // Reset
+  for (int i = 0; i < N; i++) {
+    y_opt[i] = 1.0;
+    z_opt[i] = 2.0;
+  }
+
+  // 4 times outer loop unrolling + inner loop jamming + ivdep
+  clkbegin = rtclock();
+  for (int it = 0; it < Niter; it++) {
+    unroll_jam4_ivdep(A, x, y_opt, z_opt);
+  }
+  clkend = rtclock();
+  t = clkend - clkbegin;
+  opttime = t / Niter;
+  cout << "4 times outer loop unrolling + inner loop jamming + ivdep: Matrix Size = " << N << ", Time = " << t / Niter << " sec, Speedup = " << reftime / opttime << endl;
+  check_result(y_ref, y_opt);
+  cout << endl;
+
+  // Reset
+  for (int i = 0; i < N; i++) {
+    y_opt[i] = 1.0;
+    z_opt[i] = 2.0;
+  }
+
+  // 4x4 blocking + ivdep
+  clkbegin = rtclock();
+  for (int it = 0; it < Niter; it++) {
+    blocking4x4_ivdep(A, x, y_opt, z_opt);
+  }
+  clkend = rtclock();
+  t = clkend - clkbegin;
+  opttime = t / Niter;
+  cout << "4x4 blocking + ivdep: Matrix Size = " << N << ", Time = " << t / Niter << " sec, Speedup = " << reftime / opttime << endl;
   check_result(y_ref, y_opt);
   cout << endl;
 

@@ -1,30 +1,36 @@
-Reference Version: Matrix Size = 8192, 0.37972 GFLOPS; Time = 0.70693 sec
+Reference Version: Matrix Size = 8192, 0.38136 GFLOPS; Time = 0.70390 sec
 
-Loop interchange: Matrix Size = 8192, Time = 0.65103 sec, Speedup = 1.08586
+Loop interchange: Matrix Size = 8192, Time = 0.63664 sec, Speedup = 1.10564
 No differences found between base and test versions
 
-Fission: Matrix Size = 8192, Time = 0.75172 sec, Speedup = 0.94041
+Fission: Matrix Size = 8192, Time = 0.74139 sec, Speedup = 0.94943
 No differences found between base and test versions
 
-2 times inner loop unrolling: Matrix Size = 8192, Time = 0.74630 sec, Speedup = 0.94725
+2 times inner loop unrolling: Matrix Size = 8192, Time = 0.73327 sec, Speedup = 0.95994
 No differences found between base and test versions
 
-2 times outer loop unrolling + inner loop jamming: Matrix Size = 8192, Time = 0.53490 sec, Speedup = 1.32162
+2 times outer loop unrolling + inner loop jamming: Matrix Size = 8192, Time = 0.52620 sec, Speedup = 1.33771
 No differences found between base and test versions
 
-2x2 blocking: Matrix Size = 8192, Time = 0.50611 sec, Speedup = 1.39679
+2x2 blocking: Matrix Size = 8192, Time = 0.49932 sec, Speedup = 1.40971
 No differences found between base and test versions
 
-4 times outer loop unrolling + inner loop jamming: Matrix Size = 8192, Time = 0.36339 sec, Speedup = 1.94538
+4 times outer loop unrolling + inner loop jamming: Matrix Size = 8192, Time = 0.35740 sec, Speedup = 1.96947
 No differences found between base and test versions
 
-4x4 blocking: Matrix Size = 8192, Time = 0.38672 sec, Speedup = 1.82801
+4x4 blocking: Matrix Size = 8192, Time = 0.37876 sec, Speedup = 1.85843
 No differences found between base and test versions
 
-8 times outer loop unrolling + inner loop jamming: Matrix Size = 8192, Time = 0.46132 sec, Speedup = 1.53240
+8 times outer loop unrolling + inner loop jamming: Matrix Size = 8192, Time = 0.45307 sec, Speedup = 1.55362
 No differences found between base and test versions
 
-8x8 blocking: Matrix Size = 8192, Time = 0.51517 sec, Speedup = 1.37221
+8x8 blocking: Matrix Size = 8192, Time = 0.51311 sec, Speedup = 1.37181
+No differences found between base and test versions
+
+4 times outer loop unrolling + inner loop jamming + ivdep: Matrix Size = 8192, Time = 0.27576 sec, Speedup = 2.55257
+No differences found between base and test versions
+
+4x4 blocking + ivdep: Matrix Size = 8192, Time = 0.37851 sec, Speedup = 1.85966
 No differences found between base and test versions
 
 Intrinsics Version: Matrix Size = 8192, Time = 0.00000 sec, Speedup = inf
