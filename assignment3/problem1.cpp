@@ -56,7 +56,7 @@ void check_result(const double* w_ref, const double* w_opt) {
   }
 }
 
-// Loop interchange
+// Optimized Version 1: Loop interchange
 void loop_interchange(double** A, const double* x, double* y_opt, double* z_opt) {
   for (int j = 0; j < N; j++) {
     for (int i = 0; i < N; i++) {
@@ -66,7 +66,7 @@ void loop_interchange(double** A, const double* x, double* y_opt, double* z_opt)
   }
 }
 
-// Fission
+// Optimized Version 2: Fission
 void fission(double** A, const double* x, double* y_opt, double* z_opt) {
   for (int i = 0; i < N; i++) {
     for (int j = 0; j < N; j++) {
@@ -79,7 +79,7 @@ void fission(double** A, const double* x, double* y_opt, double* z_opt) {
   }
 }
 
-// 2 times inner loop unrolling
+// Optimized Version 3: 2 times inner loop unrolling
 void inner_loop_unroll2(double** A, const double* x, double* y_opt, double* z_opt) {
   for (int i = 0; i < N; i++) {
     for (int j = 0; j < N; j += 2) {
@@ -92,7 +92,7 @@ void inner_loop_unroll2(double** A, const double* x, double* y_opt, double* z_op
   }
 }
 
-// 2 times outer loop unrolling + inner loop jamming
+// Optimized Version 4: 2 times outer loop unrolling + inner loop jamming
 void unroll_jam2(double** A, const double* x, double* y_opt, double* z_opt) {
   for (int i = 0; i < N; i += 2) {
     for (int j = 0; j < N; j++) {
@@ -105,7 +105,7 @@ void unroll_jam2(double** A, const double* x, double* y_opt, double* z_opt) {
   }
 }
 
-// 2x2 blocking
+// Optimized Version 5: 2x2 blocking
 void blocking2x2(double** A, const double* x, double* y_opt, double* z_opt) {
   for (int it = 0; it < N; it += 2) {
     for (int jt = 0; jt < N; jt += 2) {
@@ -119,7 +119,7 @@ void blocking2x2(double** A, const double* x, double* y_opt, double* z_opt) {
   }
 }
 
-// 4 times outer loop unrolling + inner loop jamming
+// Optimized Version 6: 4 times outer loop unrolling + inner loop jamming
 void unroll_jam4(double** A, const double* x, double* y_opt, double* z_opt) {
   for (int i = 0; i < N; i += 4) {
     for (int j = 0; j < N; j++) {
@@ -138,7 +138,7 @@ void unroll_jam4(double** A, const double* x, double* y_opt, double* z_opt) {
   }
 }
 
-// 4x4 blocking
+// Optimized Version 7: 4x4 blocking
 void blocking4x4(double** A, const double* x, double* y_opt, double* z_opt) {
   for (int it = 0; it < N; it += 4) {
     for (int jt = 0; jt < N; jt += 4) {
@@ -152,7 +152,7 @@ void blocking4x4(double** A, const double* x, double* y_opt, double* z_opt) {
   }
 }
 
-// 8 times outer loop unrolling + inner loop jamming
+// Optimized Version 8: 8 times outer loop unrolling + inner loop jamming
 void unroll_jam8(double** A, const double* x, double* y_opt, double* z_opt) {
   for (int i = 0; i < N; i += 8) {
     for (int j = 0; j < N; j++) {
@@ -183,7 +183,7 @@ void unroll_jam8(double** A, const double* x, double* y_opt, double* z_opt) {
   }
 }
 
-// 8x8 blocking
+// Optimized Version 9: 8x8 blocking
 void blocking8x8(double** A, const double* x, double* y_opt, double* z_opt) {
   for (int it = 0; it < N; it += 8) {
     for (int jt = 0; jt < N; jt += 8) {
@@ -197,7 +197,7 @@ void blocking8x8(double** A, const double* x, double* y_opt, double* z_opt) {
   }
 }
 
-// 4 times outer loop unrolling + inner loop jamming + ivdep
+// Optimized Version 10: 4 times outer loop unrolling + inner loop jamming + ivdep
 void unroll_jam4_ivdep(double** A, const double* x, double* y_opt, double* z_opt) {
   for (int i = 0; i < N; i += 4) {
     #pragma GCC ivdep
@@ -217,7 +217,7 @@ void unroll_jam4_ivdep(double** A, const double* x, double* y_opt, double* z_opt
   }
 }
 
-// 4x4 blocking + ivdep
+// Optimized Version 11: 4x4 blocking + ivdep
 void blocking4x4_ivdep(double** A, const double* x, double* y_opt, double* z_opt) {
   for (int it = 0; it < N; it += 4) {
     for (int jt = 0; jt < N; jt += 4) {
@@ -232,7 +232,7 @@ void blocking4x4_ivdep(double** A, const double* x, double* y_opt, double* z_opt
   }
 }
 
-// 4 times outer loop unrolling + inner loop jamming + ivdep + restrict
+// Optimized Version 12: 4 times outer loop unrolling + inner loop jamming + ivdep + restrict
 void unroll_jam4_ivdep_restrict(double** __restrict__ A, const double* __restrict__ x, double* __restrict__ y_opt, double* __restrict__ z_opt) {
   for (int i = 0; i < N; i += 4) {
     #pragma GCC ivdep
@@ -252,7 +252,7 @@ void unroll_jam4_ivdep_restrict(double** __restrict__ A, const double* __restric
   }
 }
 
-// 4x4 blocking + ivdep + restrict
+// Optimized Version 13: 4x4 blocking + ivdep + restrict
 void blocking4x4_ivdep_restrict(double** __restrict__ A, const double* __restrict__ x, double* __restrict__ y_opt, double* __restrict__ z_opt) {
   for (int it = 0; it < N; it += 4) {
     for (int jt = 0; jt < N; jt += 4) {
@@ -267,7 +267,7 @@ void blocking4x4_ivdep_restrict(double** __restrict__ A, const double* __restric
   }
 }
 
-// 4 times outer loop unrolling + inner loop jamming + ivdep + restrict + aligned
+// Optimized Version 14: 4 times outer loop unrolling + inner loop jamming + ivdep + restrict + aligned
 void unroll_jam4_ivdep_restrict_aligned(double** __restrict__ A, const double* __restrict__ x, double* __restrict__ y_opt, double* __restrict__ z_opt) {
   A = (double**)__builtin_assume_aligned(A, 32);
   x = (double*)__builtin_assume_aligned(x, 32);
@@ -292,7 +292,7 @@ void unroll_jam4_ivdep_restrict_aligned(double** __restrict__ A, const double* _
   }
 }
 
-// 4x4 blocking + ivdep + restrict + aligned
+// Optimized Version 15: 4x4 blocking + ivdep + restrict + aligned
 void blocking4x4_ivdep_restrict_aligned(double** __restrict__ A, const double* __restrict__ x, double* __restrict__ y_opt, double* __restrict__ z_opt) {
   A = (double**)__builtin_assume_aligned(A, 32);
   x = (double*)__builtin_assume_aligned(x, 32);
@@ -312,7 +312,7 @@ void blocking4x4_ivdep_restrict_aligned(double** __restrict__ A, const double* _
   }
 }
 
-// Intrinsics Version: 4 times outer loop unrolling + inner loop jamming + ivdep + restrict + aligned
+// Intrinsics Version: Optimized Version 14 (4 times outer loop unrolling + inner loop jamming + ivdep + restrict + aligned)
 void avx_version(double** A, double* x, double* y_opt, double* z_opt) {
   __m256d rA_ij, rA_ji, rx_i, ry_j, rz_j;
   for (int i = 0; i < N; i += 4) {
@@ -423,7 +423,7 @@ int main() {
   cout << "Reference Version: Matrix Size = " << N << ", " << 4.0 * 1e-9 * N * N * Niter / t
        << " GFLOPS; Time = " << t / Niter << " sec" << endl << endl;
 
-  // Loop interchange
+  // Optimized Version 1: Loop interchange
   clkbegin = rtclock();
   for (int it = 0; it < Niter; it++) {
     loop_interchange(A, x, y_opt, z_opt);
@@ -431,7 +431,7 @@ int main() {
   clkend = rtclock();
   t = clkend - clkbegin;
   opttime = t / Niter;
-  cout << "Loop interchange: Matrix Size = " << N << ", Time = " << t / Niter << " sec, Speedup = " << reftime / opttime << endl;
+  cout << "Optimized Version 1: Loop interchange: Matrix Size = " << N << ", Time = " << t / Niter << " sec, Speedup = " << reftime / opttime << endl;
   check_result(y_ref, y_opt);
   cout << endl;
 
@@ -441,7 +441,7 @@ int main() {
     z_opt[i] = 2.0;
   }
 
-  // Fission
+  // Optimized Version 2: Fission
   clkbegin = rtclock();
   for (int it = 0; it < Niter; it++) {
     fission(A, x, y_opt, z_opt);
@@ -449,7 +449,7 @@ int main() {
   clkend = rtclock();
   t = clkend - clkbegin;
   opttime = t / Niter;
-  cout << "Fission: Matrix Size = " << N << ", Time = " << t / Niter << " sec, Speedup = " << reftime / opttime << endl;
+  cout << "Optimized Version 2: Fission: Matrix Size = " << N << ", Time = " << t / Niter << " sec, Speedup = " << reftime / opttime << endl;
   check_result(y_ref, y_opt);
   cout << endl;
 
@@ -459,7 +459,7 @@ int main() {
     z_opt[i] = 2.0;
   }
 
-  // 2 times inner loop unrolling
+  // Optimized Version 3: 2 times inner loop unrolling
   clkbegin = rtclock();
   for (int it = 0; it < Niter; it++) {
     inner_loop_unroll2(A, x, y_opt, z_opt);
@@ -467,7 +467,7 @@ int main() {
   clkend = rtclock();
   t = clkend - clkbegin;
   opttime = t / Niter;
-  cout << "2 times inner loop unrolling: Matrix Size = " << N << ", Time = " << t / Niter << " sec, Speedup = " << reftime / opttime << endl;
+  cout << "Optimized Version 3: 2 times inner loop unrolling: Matrix Size = " << N << ", Time = " << t / Niter << " sec, Speedup = " << reftime / opttime << endl;
   check_result(y_ref, y_opt);
   cout << endl;
 
@@ -477,7 +477,7 @@ int main() {
     z_opt[i] = 2.0;
   }
 
-  // 2 times outer loop unrolling + inner loop jamming
+  // Optimized Version 4: 2 times outer loop unrolling + inner loop jamming
   clkbegin = rtclock();
   for (int it = 0; it < Niter; it++) {
     unroll_jam2(A, x, y_opt, z_opt);
@@ -485,7 +485,7 @@ int main() {
   clkend = rtclock();
   t = clkend - clkbegin;
   opttime = t / Niter;
-  cout << "2 times outer loop unrolling + inner loop jamming: Matrix Size = " << N << ", Time = " << t / Niter << " sec, Speedup = " << reftime / opttime << endl;
+  cout << "Optimized Version 4: 2 times outer loop unrolling + inner loop jamming: Matrix Size = " << N << ", Time = " << t / Niter << " sec, Speedup = " << reftime / opttime << endl;
   check_result(y_ref, y_opt);
   cout << endl;
 
@@ -495,7 +495,7 @@ int main() {
     z_opt[i] = 2.0;
   }
 
-  // 2x2 blocking
+  // Optimized Version 5: 2x2 blocking
   clkbegin = rtclock();
   for (int it = 0; it < Niter; it++) {
     blocking2x2(A, x, y_opt, z_opt);
@@ -503,7 +503,7 @@ int main() {
   clkend = rtclock();
   t = clkend - clkbegin;
   opttime = t / Niter;
-  cout << "2x2 blocking: Matrix Size = " << N << ", Time = " << t / Niter << " sec, Speedup = " << reftime / opttime << endl;
+  cout << "Optimized Version 5: 2x2 blocking: Matrix Size = " << N << ", Time = " << t / Niter << " sec, Speedup = " << reftime / opttime << endl;
   check_result(y_ref, y_opt);
   cout << endl;
 
@@ -513,7 +513,7 @@ int main() {
     z_opt[i] = 2.0;
   }
 
-  // 4 times outer loop unrolling + inner loop jamming
+  // Optimized Version 6: 4 times outer loop unrolling + inner loop jamming
   clkbegin = rtclock();
   for (int it = 0; it < Niter; it++) {
     unroll_jam4(A, x, y_opt, z_opt);
@@ -521,7 +521,7 @@ int main() {
   clkend = rtclock();
   t = clkend - clkbegin;
   opttime = t / Niter;
-  cout << "4 times outer loop unrolling + inner loop jamming: Matrix Size = " << N << ", Time = " << t / Niter << " sec, Speedup = " << reftime / opttime << endl;
+  cout << "Optimized Version 6: 4 times outer loop unrolling + inner loop jamming: Matrix Size = " << N << ", Time = " << t / Niter << " sec, Speedup = " << reftime / opttime << endl;
   check_result(y_ref, y_opt);
   cout << endl;
 
@@ -531,7 +531,7 @@ int main() {
     z_opt[i] = 2.0;
   }
 
-  // 4x4 blocking
+  // Optimized Version 7: 4x4 blocking
   clkbegin = rtclock();
   for (int it = 0; it < Niter; it++) {
     blocking4x4(A, x, y_opt, z_opt);
@@ -539,7 +539,7 @@ int main() {
   clkend = rtclock();
   t = clkend - clkbegin;
   opttime = t / Niter;
-  cout << "4x4 blocking: Matrix Size = " << N << ", Time = " << t / Niter << " sec, Speedup = " << reftime / opttime << endl;
+  cout << "Optimized Version 7: 4x4 blocking: Matrix Size = " << N << ", Time = " << t / Niter << " sec, Speedup = " << reftime / opttime << endl;
   check_result(y_ref, y_opt);
   cout << endl;
 
@@ -549,7 +549,7 @@ int main() {
     z_opt[i] = 2.0;
   }
 
-  // 8 times outer loop unrolling + inner loop jamming
+  // Optimized Version 8: 8 times outer loop unrolling + inner loop jamming
   clkbegin = rtclock();
   for (int it = 0; it < Niter; it++) {
     unroll_jam8(A, x, y_opt, z_opt);
@@ -557,7 +557,7 @@ int main() {
   clkend = rtclock();
   t = clkend - clkbegin;
   opttime = t / Niter;
-  cout << "8 times outer loop unrolling + inner loop jamming: Matrix Size = " << N << ", Time = " << t / Niter << " sec, Speedup = " << reftime / opttime << endl;
+  cout << "Optimized Version 8: 8 times outer loop unrolling + inner loop jamming: Matrix Size = " << N << ", Time = " << t / Niter << " sec, Speedup = " << reftime / opttime << endl;
   check_result(y_ref, y_opt);
   cout << endl;
 
@@ -567,7 +567,7 @@ int main() {
     z_opt[i] = 2.0;
   }
 
-  // 8x8 blocking
+  // Optimized Version 9: 8x8 blocking
   clkbegin = rtclock();
   for (int it = 0; it < Niter; it++) {
     blocking8x8(A, x, y_opt, z_opt);
@@ -575,7 +575,7 @@ int main() {
   clkend = rtclock();
   t = clkend - clkbegin;
   opttime = t / Niter;
-  cout << "8x8 blocking: Matrix Size = " << N << ", Time = " << t / Niter << " sec, Speedup = " << reftime / opttime << endl;
+  cout << "Optimized Version 9: 8x8 blocking: Matrix Size = " << N << ", Time = " << t / Niter << " sec, Speedup = " << reftime / opttime << endl;
   check_result(y_ref, y_opt);
   cout << endl;
 
@@ -585,7 +585,7 @@ int main() {
     z_opt[i] = 2.0;
   }
 
-  // 4 times outer loop unrolling + inner loop jamming + ivdep
+  // Optimized Version 10: 4 times outer loop unrolling + inner loop jamming + ivdep
   clkbegin = rtclock();
   for (int it = 0; it < Niter; it++) {
     unroll_jam4_ivdep(A, x, y_opt, z_opt);
@@ -593,7 +593,7 @@ int main() {
   clkend = rtclock();
   t = clkend - clkbegin;
   opttime = t / Niter;
-  cout << "4 times outer loop unrolling + inner loop jamming + ivdep: Matrix Size = " << N << ", Time = " << t / Niter << " sec, Speedup = " << reftime / opttime << endl;
+  cout << "Optimized Version 10: 4 times outer loop unrolling + inner loop jamming + ivdep: Matrix Size = " << N << ", Time = " << t / Niter << " sec, Speedup = " << reftime / opttime << endl;
   check_result(y_ref, y_opt);
   cout << endl;
 
@@ -603,7 +603,7 @@ int main() {
     z_opt[i] = 2.0;
   }
 
-  // 4x4 blocking + ivdep
+  // Optimized Version 11: 4x4 blocking + ivdep
   clkbegin = rtclock();
   for (int it = 0; it < Niter; it++) {
     blocking4x4_ivdep(A, x, y_opt, z_opt);
@@ -611,7 +611,7 @@ int main() {
   clkend = rtclock();
   t = clkend - clkbegin;
   opttime = t / Niter;
-  cout << "4x4 blocking + ivdep: Matrix Size = " << N << ", Time = " << t / Niter << " sec, Speedup = " << reftime / opttime << endl;
+  cout << "Optimized Version 11: 4x4 blocking + ivdep: Matrix Size = " << N << ", Time = " << t / Niter << " sec, Speedup = " << reftime / opttime << endl;
   check_result(y_ref, y_opt);
   cout << endl;
 
@@ -621,7 +621,7 @@ int main() {
     z_opt[i] = 2.0;
   }
 
-  // 4 times outer loop unrolling + inner loop jamming + ivdep + restrict
+  // Optimized Version 12: 4 times outer loop unrolling + inner loop jamming + ivdep + restrict
   clkbegin = rtclock();
   for (int it = 0; it < Niter; it++) {
     unroll_jam4_ivdep_restrict(A, x, y_opt, z_opt);
@@ -629,7 +629,7 @@ int main() {
   clkend = rtclock();
   t = clkend - clkbegin;
   opttime = t / Niter;
-  cout << "4 times outer loop unrolling + inner loop jamming + ivdep + restrict: Matrix Size = " << N << ", Time = " << t / Niter << " sec, Speedup = " << reftime / opttime << endl;
+  cout << "Optimized Version 12: 4 times outer loop unrolling + inner loop jamming + ivdep + restrict: Matrix Size = " << N << ", Time = " << t / Niter << " sec, Speedup = " << reftime / opttime << endl;
   check_result(y_ref, y_opt);
   cout << endl;
 
@@ -639,7 +639,7 @@ int main() {
     z_opt[i] = 2.0;
   }
 
-  // 4x4 blocking + ivdep + restrict
+  // Optimized Version 13: 4x4 blocking + ivdep + restrict
   clkbegin = rtclock();
   for (int it = 0; it < Niter; it++) {
     blocking4x4_ivdep_restrict(A, x, y_opt, z_opt);
@@ -647,7 +647,7 @@ int main() {
   clkend = rtclock();
   t = clkend - clkbegin;
   opttime = t / Niter;
-  cout << "4x4 blocking + ivdep + restrict: Matrix Size = " << N << ", Time = " << t / Niter << " sec, Speedup = " << reftime / opttime << endl;
+  cout << "Optimized Version 13: 4x4 blocking + ivdep + restrict: Matrix Size = " << N << ", Time = " << t / Niter << " sec, Speedup = " << reftime / opttime << endl;
   check_result(y_ref, y_opt);
   cout << endl;
 
@@ -686,7 +686,7 @@ int main() {
     }
   }
 
-  // 4 times outer loop unrolling + inner loop jamming + ivdep + restrict + aligned
+  // Optimized Version 14: 4 times outer loop unrolling + inner loop jamming + ivdep + restrict + aligned
   clkbegin = rtclock();
   for (int it = 0; it < Niter; it++) {
     unroll_jam4_ivdep_restrict_aligned(A, x, y_opt, z_opt);
@@ -694,7 +694,7 @@ int main() {
   clkend = rtclock();
   t = clkend - clkbegin;
   opttime = t / Niter;
-  cout << "4 times outer loop unrolling + inner loop jamming + ivdep + restrict + aligned: Matrix Size = " << N << ", Time = " << t / Niter << " sec, Speedup = " << reftime / opttime << endl;
+  cout << "Optimized Version 14: 4 times outer loop unrolling + inner loop jamming + ivdep + restrict + aligned: Matrix Size = " << N << ", Time = " << t / Niter << " sec, Speedup = " << reftime / opttime << endl;
   check_result(y_ref, y_opt);
   cout << endl;
 
@@ -704,7 +704,7 @@ int main() {
     z_opt[i] = 2.0;
   }
 
-  // 4x4 blocking + ivdep + restrict + aligned
+  // Optimized Version 15: 4x4 blocking + ivdep + restrict + aligned
   clkbegin = rtclock();
   for (int it = 0; it < Niter; it++) {
     blocking4x4_ivdep_restrict_aligned(A, x, y_opt, z_opt);
@@ -712,7 +712,7 @@ int main() {
   clkend = rtclock();
   t = clkend - clkbegin;
   opttime = t / Niter;
-  cout << "4x4 blocking + ivdep + restrict + aligned: Matrix Size = " << N << ", Time = " << t / Niter << " sec, Speedup = " << reftime / opttime << endl;
+  cout << "Optimized Version 15: 4x4 blocking + ivdep + restrict + aligned: Matrix Size = " << N << ", Time = " << t / Niter << " sec, Speedup = " << reftime / opttime << endl;
   check_result(y_ref, y_opt);
   cout << endl;
 
@@ -722,7 +722,7 @@ int main() {
     z_opt[i] = 2.0;
   }
 
-  // Version with intinsics: 4 times outer loop unrolling + inner loop jamming + ivdep + restrict + aligned
+  // Intrinsics Version: Optimized Version 14 (4 times outer loop unrolling + inner loop jamming + ivdep + restrict + aligned)
 
   clkbegin = rtclock();
   for (int it = 0; it < Niter; it++) {
@@ -731,7 +731,7 @@ int main() {
   clkend = rtclock();
   t = clkend - clkbegin;
   opttime = t / Niter;
-  cout << "Intrinsics Version: 4 times outer loop unrolling + inner loop jamming + ivdep + restrict + aligned: Matrix Size = " << N << ", Time = " << t / Niter << " sec, Speedup = " << reftime / opttime << endl;
+  cout << "Intrinsics Version: Optimized Version 14 (4 times outer loop unrolling + inner loop jamming + ivdep + restrict + aligned): Matrix Size = " << N << ", Time = " << t / Niter << " sec, Speedup = " << reftime / opttime << endl;
   check_result(y_ref, y_opt);
 
   return EXIT_SUCCESS;
