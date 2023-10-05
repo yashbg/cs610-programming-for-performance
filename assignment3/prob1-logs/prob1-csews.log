@@ -1,0 +1,19 @@
+Reference Version: Matrix Size = 8192, 0.60822 GFLOPS; Time = 0.44134 sec
+
+Loop interchange: Matrix Size = 8192, Time = 0.42548 sec, Speedup = 1.03727
+No differences found between base and test versions
+
+Split: Matrix Size = 8192, Time = 0.46076 sec, Speedup = 0.95786
+No differences found between base and test versions
+
+2 times inner loop unrolling: Matrix Size = 8192, Time = 0.42708 sec, Speedup = 1.03341
+No differences found between base and test versions
+
+2 times outer loop unrolling + inner loop jamming: Matrix Size = 8192, Time = 0.22445 sec, Speedup = 1.96631
+No differences found between base and test versions
+
+2x2 blocking: Matrix Size = 8192, Time = 0.24268 sec, Speedup = 1.81863
+No differences found between base and test versions
+
+Intrinsics Version: Matrix Size = 8192, Time = 0.00000 sec, Speedup = inf
+8192 Diffs found over threshold 0.00000; Max Diff = 447290032.50000
