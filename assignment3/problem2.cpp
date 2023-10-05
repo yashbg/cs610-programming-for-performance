@@ -23,8 +23,22 @@ uint64_t reference_sum(uint32_t* A) {
 }
 
 uint64_t par_sum_omp_nored(uint32_t* A) {
-  // SB: Write your OpenMP code here
-  return 0;
+  uint64_t seq_sum = 0;
+
+  #pragma omp parallel
+  {
+    uint64_t local_sum = 0;
+
+    #pragma omp for
+    for (int i = 0; i < N; i++) {
+      local_sum += A[i];
+    }
+
+    #pragma omp critical
+    seq_sum += local_sum;
+  }
+
+  return seq_sum;
 }
 
 uint64_t par_sum_omp_red(uint32_t* A) {
