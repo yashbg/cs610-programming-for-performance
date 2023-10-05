@@ -412,26 +412,6 @@ int main() {
     }
   }
 
-  double** A_aligned;
-  A_aligned = (double**)memalign(32, N*sizeof(double));
-  for (int i = 0; i < N; i++) {
-    A_aligned[i] = (double*)memalign(32, N*sizeof(double));
-  }
-
-  double *x_aligned, *y_aligned, *z_aligned;
-  x_aligned = (double*)memalign(32, N*sizeof(double));
-  y_aligned = (double*)memalign(32, N*sizeof(double));;
-  z_aligned = (double*)memalign(32, N*sizeof(double));;
-
-  for (int i = 0; i < N; i++) {
-    x_aligned[i] = i;
-    y_aligned[i] = 1.0;
-    z_aligned[i] = 2.0;
-    for (int j = 0; j < N; j++) {
-      A_aligned[i][j] = (i + 2.0 * j) / (2.0 * N);
-    }
-  }
-
   // Reference version
   clkbegin = rtclock();
   for (int it = 0; it < Niter; it++) {
@@ -677,47 +657,76 @@ int main() {
     z_opt[i] = 2.0;
   }
 
+  for (int i = 0; i < N; i++) {
+    delete[] A[i];
+  }
+  delete[] A;
+  
+  delete[] x;
+  delete[] y_opt;
+  delete[] z_opt;
+
+  // Aligned versions
+
+  A = (double**)memalign(32, N * sizeof(double));
+  for (int i = 0; i < N; i++) {
+    A[i] = (double*)memalign(32, N * sizeof(double));
+  }
+
+  x = (double*)memalign(32, N * sizeof(double));
+  y_opt = (double*)memalign(32, N * sizeof(double));
+  z_opt = (double*)memalign(32, N * sizeof(double));
+
+  for (int i = 0; i < N; i++) {
+    x[i] = i;
+    y_opt[i] = 1.0;
+    z_opt[i] = 2.0;
+    for (int j = 0; j < N; j++) {
+      A[i][j] = (i + 2.0 * j) / (2.0 * N);
+    }
+  }
+
   // 4 times outer loop unrolling + inner loop jamming + ivdep + restrict + aligned
   clkbegin = rtclock();
   for (int it = 0; it < Niter; it++) {
-    unroll_jam4_ivdep_restrict_aligned(A_aligned, x_aligned, y_aligned, z_aligned);
+    unroll_jam4_ivdep_restrict_aligned(A, x, y_opt, z_opt);
   }
   clkend = rtclock();
   t = clkend - clkbegin;
   opttime = t / Niter;
   cout << "4 times outer loop unrolling + inner loop jamming + ivdep + restrict + aligned: Matrix Size = " << N << ", Time = " << t / Niter << " sec, Speedup = " << reftime / opttime << endl;
-  check_result(y_ref, y_aligned);
+  check_result(y_ref, y_opt);
   cout << endl;
 
   // Reset
   for (int i = 0; i < N; i++) {
-    y_aligned[i] = 1.0;
-    z_aligned[i] = 2.0;
+    y_opt[i] = 1.0;
+    z_opt[i] = 2.0;
   }
 
   // 4x4 blocking + ivdep + restrict + aligned
   clkbegin = rtclock();
   for (int it = 0; it < Niter; it++) {
-    blocking4x4_ivdep_restrict_aligned(A_aligned, x_aligned, y_aligned, z_aligned);
+    blocking4x4_ivdep_restrict_aligned(A, x, y_opt, z_opt);
   }
   clkend = rtclock();
   t = clkend - clkbegin;
   opttime = t / Niter;
   cout << "4x4 blocking + ivdep + restrict + aligned: Matrix Size = " << N << ", Time = " << t / Niter << " sec, Speedup = " << reftime / opttime << endl;
-  check_result(y_ref, y_aligned);
+  check_result(y_ref, y_opt);
   cout << endl;
 
   // Reset
   for (int i = 0; i < N; i++) {
-    y_aligned[i] = 1.0;
-    z_aligned[i] = 2.0;
+    y_opt[i] = 1.0;
+    z_opt[i] = 2.0;
   }
 
   // Version with intinsics: 4 times outer loop unrolling + inner loop jamming + ivdep + restrict + aligned
 
   clkbegin = rtclock();
   for (int it = 0; it < Niter; it++) {
-    avx_version(A_aligned, x_aligned, y_aligned, z_aligned);
+    avx_version(A, x, y_opt, z_opt);
   }
   clkend = rtclock();
   t = clkend - clkbegin;
