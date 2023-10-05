@@ -34,7 +34,7 @@ uint64_t par_sum_omp_nored(uint32_t* A) {
       local_sum += A[i];
     }
 
-    #pragma omp critical
+    #pragma omp atomic
     seq_sum += local_sum;
   }
 
