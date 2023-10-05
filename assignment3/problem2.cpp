@@ -64,25 +64,29 @@ int main() {
   }
 
   double start_time, end_time, pi;
+  double reference_time, parallel_time;
 
   start_time = omp_get_wtime();
   uint64_t seq_sum = reference_sum(x);
   end_time = omp_get_wtime();
-  cout << "Sequential sum: " << seq_sum << " in " << (end_time - start_time) << " seconds\n";
+  reference_time = end_time - start_time;
+  cout << "Sequential sum: " << seq_sum << " in " << reference_time << " seconds\n";
 
   start_time = omp_get_wtime();
   uint64_t par_sum = par_sum_omp_nored(x);
   end_time = omp_get_wtime();
   assert(seq_sum == par_sum);
-  cout << "Parallel sum (thread-local, atomic): " << par_sum << " in " << (end_time - start_time)
-       << " seconds\n";
+  parallel_time = end_time - start_time;
+  cout << "Parallel sum (thread-local, atomic): " << par_sum << " in " << parallel_time
+       << " seconds, Speedup = " << reference_time / parallel_time << endl;
 
   start_time = omp_get_wtime();
   uint64_t ws_sum = par_sum_omp_red(x);
   end_time = omp_get_wtime();
   assert(seq_sum == ws_sum);
-  cout << "Parallel sum (worksharing construct): " << ws_sum << " in " << (end_time - start_time)
-       << " seconds\n";
+  parallel_time = end_time - start_time;
+  cout << "Parallel sum (worksharing construct): " << ws_sum << " in " << parallel_time
+       << " seconds, Speedup = " << reference_time / parallel_time << endl;
 
   start_time = omp_get_wtime();
   uint64_t task_sum = par_sum_omp_tasks(x);
@@ -91,8 +95,9 @@ int main() {
     cout << "Seq sum: " << seq_sum << " Task sum: " << task_sum << "\n";
   }
   assert(seq_sum == task_sum);
-  cout << "Parallel sum (OpenMP tasks): " << task_sum << " in " << (end_time - start_time)
-       << " seconds\n";
+  parallel_time = end_time - start_time;
+  cout << "Parallel sum (OpenMP tasks): " << task_sum << " in " << parallel_time
+       << " seconds, Speedup = " << reference_time / parallel_time << endl;
 
   return EXIT_SUCCESS;
 }
