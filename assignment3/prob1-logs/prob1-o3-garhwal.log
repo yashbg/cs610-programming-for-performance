@@ -1,0 +1,31 @@
+Reference Version: Matrix Size = 8192, 0.37972 GFLOPS; Time = 0.70693 sec
+
+Loop interchange: Matrix Size = 8192, Time = 0.65103 sec, Speedup = 1.08586
+No differences found between base and test versions
+
+Fission: Matrix Size = 8192, Time = 0.75172 sec, Speedup = 0.94041
+No differences found between base and test versions
+
+2 times inner loop unrolling: Matrix Size = 8192, Time = 0.74630 sec, Speedup = 0.94725
+No differences found between base and test versions
+
+2 times outer loop unrolling + inner loop jamming: Matrix Size = 8192, Time = 0.53490 sec, Speedup = 1.32162
+No differences found between base and test versions
+
+2x2 blocking: Matrix Size = 8192, Time = 0.50611 sec, Speedup = 1.39679
+No differences found between base and test versions
+
+4 times outer loop unrolling + inner loop jamming: Matrix Size = 8192, Time = 0.36339 sec, Speedup = 1.94538
+No differences found between base and test versions
+
+4x4 blocking: Matrix Size = 8192, Time = 0.38672 sec, Speedup = 1.82801
+No differences found between base and test versions
+
+8 times outer loop unrolling + inner loop jamming: Matrix Size = 8192, Time = 0.46132 sec, Speedup = 1.53240
+No differences found between base and test versions
+
+8x8 blocking: Matrix Size = 8192, Time = 0.51517 sec, Speedup = 1.37221
+No differences found between base and test versions
+
+Intrinsics Version: Matrix Size = 8192, Time = 0.00000 sec, Speedup = inf
+8192 Diffs found over threshold 0.00000; Max Diff = 447290032.50000
