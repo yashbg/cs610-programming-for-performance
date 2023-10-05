@@ -1,49 +1,50 @@
-Reference Version: Matrix Size = 8192, 0.36766 GFLOPS; Time = 0.73011 sec
+g++ -O2 -mavx -mavx2 -march=native -o problem1 problem1.cpp && ./problem1
+Reference Version: Matrix Size = 8192, 0.35774 GFLOPS; Time = 0.75036 sec
 
-Loop interchange: Matrix Size = 8192, Time = 0.68101 sec, Speedup = 1.07210
+Loop interchange: Matrix Size = 8192, Time = 0.71160 sec, Speedup = 1.05447
 No differences found between base and test versions
 
-Fission: Matrix Size = 8192, Time = 0.74366 sec, Speedup = 0.98179
+Fission: Matrix Size = 8192, Time = 0.74392 sec, Speedup = 1.00865
 No differences found between base and test versions
 
-2 times inner loop unrolling: Matrix Size = 8192, Time = 0.71519 sec, Speedup = 1.02086
+2 times inner loop unrolling: Matrix Size = 8192, Time = 0.73422 sec, Speedup = 1.02198
 No differences found between base and test versions
 
-2 times outer loop unrolling + inner loop jamming: Matrix Size = 8192, Time = 0.52356 sec, Speedup = 1.39452
+2 times outer loop unrolling + inner loop jamming: Matrix Size = 8192, Time = 0.52711 sec, Speedup = 1.42354
 No differences found between base and test versions
 
-2x2 blocking: Matrix Size = 8192, Time = 0.55191 sec, Speedup = 1.32288
+2x2 blocking: Matrix Size = 8192, Time = 0.55296 sec, Speedup = 1.35698
 No differences found between base and test versions
 
-4 times outer loop unrolling + inner loop jamming: Matrix Size = 8192, Time = 0.35258 sec, Speedup = 2.07077
+4 times outer loop unrolling + inner loop jamming: Matrix Size = 8192, Time = 0.36963 sec, Speedup = 2.03005
 No differences found between base and test versions
 
-4x4 blocking: Matrix Size = 8192, Time = 0.41953 sec, Speedup = 1.74029
+4x4 blocking: Matrix Size = 8192, Time = 0.42900 sec, Speedup = 1.74908
 No differences found between base and test versions
 
-8 times outer loop unrolling + inner loop jamming: Matrix Size = 8192, Time = 0.47726 sec, Speedup = 1.52981
+8 times outer loop unrolling + inner loop jamming: Matrix Size = 8192, Time = 0.48080 sec, Speedup = 1.56063
 No differences found between base and test versions
 
-8x8 blocking: Matrix Size = 8192, Time = 0.51172 sec, Speedup = 1.42677
+8x8 blocking: Matrix Size = 8192, Time = 0.51646 sec, Speedup = 1.45289
 No differences found between base and test versions
 
-4 times outer loop unrolling + inner loop jamming + ivdep: Matrix Size = 8192, Time = 0.35868 sec, Speedup = 2.03557
+4 times outer loop unrolling + inner loop jamming + ivdep: Matrix Size = 8192, Time = 0.36438 sec, Speedup = 2.05925
 No differences found between base and test versions
 
-4x4 blocking + ivdep: Matrix Size = 8192, Time = 0.42777 sec, Speedup = 1.70679
+4x4 blocking + ivdep: Matrix Size = 8192, Time = 0.42279 sec, Speedup = 1.77476
 No differences found between base and test versions
 
-4 times outer loop unrolling + inner loop jamming + ivdep + restrict: Matrix Size = 8192, Time = 0.28582 sec, Speedup = 2.55441
+4 times outer loop unrolling + inner loop jamming + ivdep + restrict: Matrix Size = 8192, Time = 0.27678 sec, Speedup = 2.71105
 No differences found between base and test versions
 
-4x4 blocking + ivdep + restrict: Matrix Size = 8192, Time = 0.38291 sec, Speedup = 1.90676
+4x4 blocking + ivdep + restrict: Matrix Size = 8192, Time = 0.37973 sec, Speedup = 1.97601
 No differences found between base and test versions
 
-4 times outer loop unrolling + inner loop jamming + ivdep + restrict + aligned: Matrix Size = 8192, Time = 0.11857 sec, Speedup = 6.15778
+4 times outer loop unrolling + inner loop jamming + ivdep + restrict + aligned: Matrix Size = 8192, Time = 0.11455 sec, Speedup = 6.55056
 8192 Diffs found over threshold 0.00000; Max Diff = 447290032.50000
 
-4x4 blocking + ivdep + restrict + aligned: Matrix Size = 8192, Time = 0.14819 sec, Speedup = 4.92681
+4x4 blocking + ivdep + restrict + aligned: Matrix Size = 8192, Time = 0.14189 sec, Speedup = 5.28835
 8192 Diffs found over threshold 0.00000; Max Diff = 447290032.50000
 
-Intrinsics Version: Matrix Size = 8192, Time = 0.00000 sec, Speedup = inf
+Intrinsics Version: 4 times outer loop unrolling + inner loop jamming + ivdep + restrict + aligned: Matrix Size = 8192, Time = 0.10765 sec, Speedup = 6.97027
 8192 Diffs found over threshold 0.00000; Max Diff = 447290032.50000

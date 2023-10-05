@@ -1,49 +1,49 @@
-Reference Version: Matrix Size = 8192, 0.39912 GFLOPS; Time = 0.67257 sec
+Reference Version: Matrix Size = 8192, 0.38957 GFLOPS; Time = 0.68905 sec
 
-Loop interchange: Matrix Size = 8192, Time = 0.61927 sec, Speedup = 1.08607
+Loop interchange: Matrix Size = 8192, Time = 0.63906 sec, Speedup = 1.07823
 No differences found between base and test versions
 
-Fission: Matrix Size = 8192, Time = 0.71895 sec, Speedup = 0.93549
+Fission: Matrix Size = 8192, Time = 0.73319 sec, Speedup = 0.93981
 No differences found between base and test versions
 
-2 times inner loop unrolling: Matrix Size = 8192, Time = 0.71047 sec, Speedup = 0.94666
+2 times inner loop unrolling: Matrix Size = 8192, Time = 0.74160 sec, Speedup = 0.92915
 No differences found between base and test versions
 
-2 times outer loop unrolling + inner loop jamming: Matrix Size = 8192, Time = 0.52116 sec, Speedup = 1.29054
+2 times outer loop unrolling + inner loop jamming: Matrix Size = 8192, Time = 0.53129 sec, Speedup = 1.29694
 No differences found between base and test versions
 
-2x2 blocking: Matrix Size = 8192, Time = 0.49007 sec, Speedup = 1.37239
+2x2 blocking: Matrix Size = 8192, Time = 0.50280 sec, Speedup = 1.37044
 No differences found between base and test versions
 
-4 times outer loop unrolling + inner loop jamming: Matrix Size = 8192, Time = 0.35649 sec, Speedup = 1.88668
+4 times outer loop unrolling + inner loop jamming: Matrix Size = 8192, Time = 0.37199 sec, Speedup = 1.85235
 No differences found between base and test versions
 
-4x4 blocking: Matrix Size = 8192, Time = 0.37743 sec, Speedup = 1.78199
+4x4 blocking: Matrix Size = 8192, Time = 0.39048 sec, Speedup = 1.76464
 No differences found between base and test versions
 
-8 times outer loop unrolling + inner loop jamming: Matrix Size = 8192, Time = 0.48315 sec, Speedup = 1.39207
+8 times outer loop unrolling + inner loop jamming: Matrix Size = 8192, Time = 0.48100 sec, Speedup = 1.43255
 No differences found between base and test versions
 
-8x8 blocking: Matrix Size = 8192, Time = 0.52105 sec, Speedup = 1.29080
+8x8 blocking: Matrix Size = 8192, Time = 0.52084 sec, Speedup = 1.32296
 No differences found between base and test versions
 
-4 times outer loop unrolling + inner loop jamming + ivdep: Matrix Size = 8192, Time = 0.28099 sec, Speedup = 2.39358
+4 times outer loop unrolling + inner loop jamming + ivdep: Matrix Size = 8192, Time = 0.28059 sec, Speedup = 2.45575
 No differences found between base and test versions
 
-4x4 blocking + ivdep: Matrix Size = 8192, Time = 0.38217 sec, Speedup = 1.75989
+4x4 blocking + ivdep: Matrix Size = 8192, Time = 0.39161 sec, Speedup = 1.75956
 No differences found between base and test versions
 
-4 times outer loop unrolling + inner loop jamming + ivdep + restrict: Matrix Size = 8192, Time = 0.23113 sec, Speedup = 2.90992
+4 times outer loop unrolling + inner loop jamming + ivdep + restrict: Matrix Size = 8192, Time = 0.23973 sec, Speedup = 2.87424
 No differences found between base and test versions
 
-4x4 blocking + ivdep + restrict: Matrix Size = 8192, Time = 0.32976 sec, Speedup = 2.03959
+4x4 blocking + ivdep + restrict: Matrix Size = 8192, Time = 0.34144 sec, Speedup = 2.01808
 No differences found between base and test versions
 
-4 times outer loop unrolling + inner loop jamming + ivdep + restrict + aligned: Matrix Size = 8192, Time = 0.09074 sec, Speedup = 7.41241
+4 times outer loop unrolling + inner loop jamming + ivdep + restrict + aligned: Matrix Size = 8192, Time = 0.09054 sec, Speedup = 7.61041
 8192 Diffs found over threshold 0.00000; Max Diff = 447290032.50000
 
-4x4 blocking + ivdep + restrict + aligned: Matrix Size = 8192, Time = 0.11003 sec, Speedup = 6.11269
+4x4 blocking + ivdep + restrict + aligned: Matrix Size = 8192, Time = 0.10894 sec, Speedup = 6.32535
 8192 Diffs found over threshold 0.00000; Max Diff = 447290032.50000
 
-Intrinsics Version: Matrix Size = 8192, Time = 0.00000 sec, Speedup = inf
+Intrinsics Version: 4 times outer loop unrolling + inner loop jamming + ivdep + restrict + aligned: Matrix Size = 8192, Time = 0.10489 sec, Speedup = 6.56955
 8192 Diffs found over threshold 0.00000; Max Diff = 447290032.50000
