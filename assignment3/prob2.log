@@ -1,0 +1,4 @@
+Sequential sum: 140737479966720 in 0.012142 seconds
+Parallel sum (thread-local, atomic): 140737479966720 in 0.00296654 seconds, Speedup = 4.093
+Parallel sum (worksharing construct): 140737479966720 in 0.00136787 seconds, Speedup = 8.8766
+Parallel sum (OpenMP tasks): 140737479966720 in 0.116067 seconds, Speedup = 0.104612

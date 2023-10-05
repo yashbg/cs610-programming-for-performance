@@ -53,8 +53,28 @@ uint64_t par_sum_omp_red(uint32_t* A) {
 }
 
 uint64_t par_sum_omp_tasks(uint32_t* A) {
-  // SB: Write your OpenMP code here
-  return 0;
+  uint64_t seq_sum = 0;
+
+  #pragma omp parallel
+  {
+    #pragma omp single
+    {
+      for (int i = 0; i < N; i += GRANULARITY) {
+        #pragma omp task untied
+        {
+          uint64_t local_sum = 0;
+          for (int j = i; j < i + GRANULARITY; j++) {
+            local_sum += A[j];
+          }
+
+          #pragma omp atomic
+          seq_sum += local_sum;
+        }
+      }
+    }
+  }
+  
+  return seq_sum;
 }
 
 int main() {
