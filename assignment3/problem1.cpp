@@ -54,13 +54,57 @@ void check_result(const double* w_ref, const double* w_opt) {
   }
 }
 
-// TODO: INITIALLY IDENTICAL TO REFERENCE; MAKE YOUR CHANGES TO OPTIMIZE THE CODE
-// You can create multiple versions of the optimized() function to test your changes
-void optimized(double** A, const double* x, double* y_opt, double* z_opt) {
+void loop_interchange(double** A, const double* x, double* y_opt, double* z_opt) {
+  for (int j = 0; j < N; j++) {
+    for (int i = 0; i < N; i++) {
+      y_opt[j] = y_opt[j] + A[i][j] * x[i];
+      z_opt[j] = z_opt[j] + A[j][i] * x[i];
+    }
+  }
+}
+
+void split(double** A, const double* x, double* y_opt, double* z_opt) {
   for (int i = 0; i < N; i++) {
     for (int j = 0; j < N; j++) {
       y_opt[j] = y_opt[j] + A[i][j] * x[i];
+    }
+    for (int j = 0; j < N; j++) {
       z_opt[j] = z_opt[j] + A[j][i] * x[i];
+    }
+  }
+}
+
+void inner_loop_unroll2(double** A, const double* x, double* y_opt, double* z_opt) {
+  for (int i = 0; i < N; i++) {
+    for (int j = 0; j < N; j += 2) {
+      y_opt[j] = y_opt[j] + A[i][j] * x[i];
+      z_opt[j] = z_opt[j] + A[j][i] * x[i];
+      y_opt[j + 1] = y_opt[j + 1] + A[i][j + 1] * x[i];
+      z_opt[j + 1] = z_opt[j + 1] + A[j + 1][i] * x[i];
+    }
+  }
+}
+
+void unroll_jam2(double** A, const double* x, double* y_opt, double* z_opt) {
+  for (int i = 0; i < N; i += 2) {
+    for (int j = 0; j < N; j++) {
+      y_opt[j] = y_opt[j] + A[i][j] * x[i];
+      z_opt[j] = z_opt[j] + A[j][i] * x[i];
+      y_opt[j] = y_opt[j] + A[i + 1][j] * x[i + 1];
+      z_opt[j] = z_opt[j] + A[j][i + 1] * x[i + 1];
+    }
+  }
+}
+
+void blocking2x2(double** A, const double* x, double* y_opt, double* z_opt) {
+  for (int it = 0; it < N; it += 2) {
+    for (int jt = 0; jt < N; jt += 2) {
+      for (int i = it; i < it + 2; i++) {
+        for (int j = jt; j < jt + 2; j++) {
+          y_opt[j] = y_opt[j] + A[i][j] * x[i];
+          z_opt[j] = z_opt[j] + A[j][i] * x[i];
+        }
+      }
     }
   }
 }
@@ -70,6 +114,7 @@ void avx_version(double** A, double* x, double* y_opt, double* z_opt) {}
 int main() {
   double clkbegin, clkend;
   double t;
+  double reftime, opttime;
 
   cout.setf(ios::fixed, ios::floatfield);
   cout.precision(5);
@@ -98,23 +143,28 @@ int main() {
     }
   }
 
+  // Reference version
   clkbegin = rtclock();
   for (int it = 0; it < Niter; it++) {
     reference(A, x, y_ref, z_ref);
   }
   clkend = rtclock();
   t = clkend - clkbegin;
+  reftime = t / Niter;
   cout << "Reference Version: Matrix Size = " << N << ", " << 4.0 * 1e-9 * N * N * Niter / t
-       << " GFLOPS; Time = " << t / Niter << " sec\n";
+       << " GFLOPS; Time = " << t / Niter << " sec" << endl << endl;
 
+  // Loop interchange
   clkbegin = rtclock();
   for (int it = 0; it < Niter; it++) {
-    optimized(A, x, y_opt, z_opt);
+    loop_interchange(A, x, y_opt, z_opt);
   }
   clkend = rtclock();
   t = clkend - clkbegin;
-  cout << "Optimized Version: Matrix Size = " << N << ", Time = " << t / Niter << " sec\n";
+  opttime = t / Niter;
+  cout << "Loop interchange: Matrix Size = " << N << ", Time = " << t / Niter << " sec, Speedup = " << reftime / opttime << endl;
   check_result(y_ref, y_opt);
+  cout << endl;
 
   // Reset
   for (int i = 0; i < N; i++) {
@@ -122,7 +172,77 @@ int main() {
     z_opt[i] = 2.0;
   }
 
-  // Another optimized version possibly
+  // Split
+  clkbegin = rtclock();
+  for (int it = 0; it < Niter; it++) {
+    split(A, x, y_opt, z_opt);
+  }
+  clkend = rtclock();
+  t = clkend - clkbegin;
+  opttime = t / Niter;
+  cout << "Split: Matrix Size = " << N << ", Time = " << t / Niter << " sec, Speedup = " << reftime / opttime << endl;
+  check_result(y_ref, y_opt);
+  cout << endl;
+
+  // Reset
+  for (int i = 0; i < N; i++) {
+    y_opt[i] = 1.0;
+    z_opt[i] = 2.0;
+  }
+
+  // 2 times inner loop unrolling
+  clkbegin = rtclock();
+  for (int it = 0; it < Niter; it++) {
+    inner_loop_unroll2(A, x, y_opt, z_opt);
+  }
+  clkend = rtclock();
+  t = clkend - clkbegin;
+  opttime = t / Niter;
+  cout << "2 times inner loop unrolling: Matrix Size = " << N << ", Time = " << t / Niter << " sec, Speedup = " << reftime / opttime << endl;
+  check_result(y_ref, y_opt);
+  cout << endl;
+
+  // Reset
+  for (int i = 0; i < N; i++) {
+    y_opt[i] = 1.0;
+    z_opt[i] = 2.0;
+  }
+
+  // 2 times outer loop unrolling + inner loop jamming
+  clkbegin = rtclock();
+  for (int it = 0; it < Niter; it++) {
+    unroll_jam2(A, x, y_opt, z_opt);
+  }
+  clkend = rtclock();
+  t = clkend - clkbegin;
+  opttime = t / Niter;
+  cout << "2 times outer loop unrolling + inner loop jamming: Matrix Size = " << N << ", Time = " << t / Niter << " sec, Speedup = " << reftime / opttime << endl;
+  check_result(y_ref, y_opt);
+  cout << endl;
+
+  // Reset
+  for (int i = 0; i < N; i++) {
+    y_opt[i] = 1.0;
+    z_opt[i] = 2.0;
+  }
+
+  // 2x2 blocking
+  clkbegin = rtclock();
+  for (int it = 0; it < Niter; it++) {
+    blocking2x2(A, x, y_opt, z_opt);
+  }
+  clkend = rtclock();
+  t = clkend - clkbegin;
+  opttime = t / Niter;
+  cout << "2x2 blocking: Matrix Size = " << N << ", Time = " << t / Niter << " sec, Speedup = " << reftime / opttime << endl;
+  check_result(y_ref, y_opt);
+  cout << endl;
+
+  // Reset
+  for (int i = 0; i < N; i++) {
+    y_opt[i] = 1.0;
+    z_opt[i] = 2.0;
+  }
 
   // Version with intinsics
 
@@ -132,7 +252,8 @@ int main() {
   }
   clkend = rtclock();
   t = clkend - clkbegin;
-  cout << "Intrinsics Version: Matrix Size = " << N << ", Time = " << t / Niter << " sec\n";
+  opttime = t / Niter;
+  cout << "Intrinsics Version: Matrix Size = " << N << ", Time = " << t / Niter << " sec, Speedup = " << reftime / opttime << endl;
   check_result(y_ref, y_opt);
 
   return EXIT_SUCCESS;
