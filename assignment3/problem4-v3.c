@@ -239,19 +239,22 @@ void gridloopsearch(
 
                       if ((q1 <= e1) && (q2 <= e2) && (q3 <= e3) && (q4 <= e4) && (q5 <= e5) &&
                           (q6 <= e6) && (q7 <= e7) && (q8 <= e8) && (q9 <= e9) && (q10 <= e10)) {
-                        pnts = pnts + 1;
+                        #pragma omp critical
+                        {
+                          pnts = pnts + 1;
 
-                        // xi's which satisfy the constraints to be written in file
-                        fprintf(fptr, "%lf\t", x1);
-                        fprintf(fptr, "%lf\t", x2);
-                        fprintf(fptr, "%lf\t", x3);
-                        fprintf(fptr, "%lf\t", x4);
-                        fprintf(fptr, "%lf\t", x5);
-                        fprintf(fptr, "%lf\t", x6);
-                        fprintf(fptr, "%lf\t", x7);
-                        fprintf(fptr, "%lf\t", x8);
-                        fprintf(fptr, "%lf\t", x9);
-                        fprintf(fptr, "%lf\n", x10);
+                          // xi's which satisfy the constraints to be written in file
+                          fprintf(fptr, "%lf\t", x1);
+                          fprintf(fptr, "%lf\t", x2);
+                          fprintf(fptr, "%lf\t", x3);
+                          fprintf(fptr, "%lf\t", x4);
+                          fprintf(fptr, "%lf\t", x5);
+                          fprintf(fptr, "%lf\t", x6);
+                          fprintf(fptr, "%lf\t", x7);
+                          fprintf(fptr, "%lf\t", x8);
+                          fprintf(fptr, "%lf\t", x9);
+                          fprintf(fptr, "%lf\n", x10);
+                        }
                       }
                     }
                   }
