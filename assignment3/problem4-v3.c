@@ -121,10 +121,10 @@ void gridloopsearch(
     double c103, double c104, double c105, double c106, double c107, double c108, double c109,
     double c1010, double d10, double ey10, double kk) {
   // results values
-  double x1, x2, x3, x4, x5, x6, x7, x8, x9, x10;
+  // double x1, x2, x3, x4, x5, x6, x7, x8, x9, x10;
 
   // constraint values
-  double q1, q2, q3, q4, q5, q6, q7, q8, q9, q10;
+  // double q1, q2, q3, q4, q5, q6, q7, q8, q9, q10;
 
   // results points
   long pnts = 0;
@@ -151,16 +151,16 @@ void gridloopsearch(
   e9 = kk * ey9;
   e10 = kk * ey10;
 
-  x1 = dd1;
-  x2 = dd4;
-  x3 = dd7;
-  x4 = dd10;
-  x5 = dd13;
-  x6 = dd16;
-  x7 = dd19;
-  x8 = dd22;
-  x9 = dd25;
-  x10 = dd28;
+  // x1 = dd1;
+  // x2 = dd4;
+  // x3 = dd7;
+  // x4 = dd10;
+  // x5 = dd13;
+  // x6 = dd16;
+  // x7 = dd19;
+  // x8 = dd22;
+  // x9 = dd25;
+  // x10 = dd28;
 
   // for loop upper values
   int s1, s2, s3, s4, s5, s6, s7, s8, s9, s10;
@@ -176,74 +176,66 @@ void gridloopsearch(
   s10 = floor((dd29 - dd28) / dd30);
 
   // grid search starts
+  #pragma omp parallel for collapse(10) reduction(+ : pnts) ordered
   for (int r1 = 0; r1 < s1; ++r1) {
-    x1 = dd1 + r1 * dd3;
-
     for (int r2 = 0; r2 < s2; ++r2) {
-      x2 = dd4 + r2 * dd6;
-
       for (int r3 = 0; r3 < s3; ++r3) {
-        x3 = dd7 + r3 * dd9;
-
         for (int r4 = 0; r4 < s4; ++r4) {
-          x4 = dd10 + r4 * dd12;
-
           for (int r5 = 0; r5 < s5; ++r5) {
-            x5 = dd13 + r5 * dd15;
-
             for (int r6 = 0; r6 < s6; ++r6) {
-              x6 = dd16 + r6 * dd18;
-
               for (int r7 = 0; r7 < s7; ++r7) {
-                x7 = dd19 + r7 * dd21;
-
                 for (int r8 = 0; r8 < s8; ++r8) {
-                  x8 = dd22 + r8 * dd24;
-
                   for (int r9 = 0; r9 < s9; ++r9) {
-                    x9 = dd25 + r9 * dd27;
-
                     for (int r10 = 0; r10 < s10; ++r10) {
-                      x10 = dd28 + r10 * dd30;
+                      double x1 = dd1 + r1 * dd3;
+                      double x2 = dd4 + r2 * dd6;
+                      double x3 = dd7 + r3 * dd9;
+                      double x4 = dd10 + r4 * dd12;
+                      double x5 = dd13 + r5 * dd15;
+                      double x6 = dd16 + r6 * dd18;
+                      double x7 = dd19 + r7 * dd21;
+                      double x8 = dd22 + r8 * dd24;
+                      double x9 = dd25 + r9 * dd27;
+                      double x10 = dd28 + r10 * dd30;
 
                       // constraints
 
-                      q1 = fabs(c11 * x1 + c12 * x2 + c13 * x3 + c14 * x4 + c15 * x5 + c16 * x6 +
+                      double q1 = fabs(c11 * x1 + c12 * x2 + c13 * x3 + c14 * x4 + c15 * x5 + c16 * x6 +
                                 c17 * x7 + c18 * x8 + c19 * x9 + c110 * x10 - d1);
 
-                      q2 = fabs(c21 * x1 + c22 * x2 + c23 * x3 + c24 * x4 + c25 * x5 + c26 * x6 +
+                      double q2 = fabs(c21 * x1 + c22 * x2 + c23 * x3 + c24 * x4 + c25 * x5 + c26 * x6 +
                                 c27 * x7 + c28 * x8 + c29 * x9 + c210 * x10 - d2);
 
-                      q3 = fabs(c31 * x1 + c32 * x2 + c33 * x3 + c34 * x4 + c35 * x5 + c36 * x6 +
+                      double q3 = fabs(c31 * x1 + c32 * x2 + c33 * x3 + c34 * x4 + c35 * x5 + c36 * x6 +
                                 c37 * x7 + c38 * x8 + c39 * x9 + c310 * x10 - d3);
 
-                      q4 = fabs(c41 * x1 + c42 * x2 + c43 * x3 + c44 * x4 + c45 * x5 + c46 * x6 +
+                      double q4 = fabs(c41 * x1 + c42 * x2 + c43 * x3 + c44 * x4 + c45 * x5 + c46 * x6 +
                                 c47 * x7 + c48 * x8 + c49 * x9 + c410 * x10 - d4);
-                      q5 = fabs(c51 * x1 + c52 * x2 + c53 * x3 + c54 * x4 + c55 * x5 + c56 * x6 +
+                      double q5 = fabs(c51 * x1 + c52 * x2 + c53 * x3 + c54 * x4 + c55 * x5 + c56 * x6 +
                                 c57 * x7 + c58 * x8 + c59 * x9 + c510 * x10 - d5);
 
-                      q6 = fabs(c61 * x1 + c62 * x2 + c63 * x3 + c64 * x4 + c65 * x5 + c66 * x6 +
+                      double q6 = fabs(c61 * x1 + c62 * x2 + c63 * x3 + c64 * x4 + c65 * x5 + c66 * x6 +
                                 c67 * x7 + c68 * x8 + c69 * x9 + c610 * x10 - d6);
 
-                      q7 = fabs(c71 * x1 + c72 * x2 + c73 * x3 + c74 * x4 + c75 * x5 + c76 * x6 +
+                      double q7 = fabs(c71 * x1 + c72 * x2 + c73 * x3 + c74 * x4 + c75 * x5 + c76 * x6 +
                                 c77 * x7 + c78 * x8 + c79 * x9 + c710 * x10 - d7);
 
-                      q8 = fabs(c81 * x1 + c82 * x2 + c83 * x3 + c84 * x4 + c85 * x5 + c86 * x6 +
+                      double q8 = fabs(c81 * x1 + c82 * x2 + c83 * x3 + c84 * x4 + c85 * x5 + c86 * x6 +
                                 c87 * x7 + c88 * x8 + c89 * x9 + c810 * x10 - d8);
 
-                      q9 = fabs(c91 * x1 + c92 * x2 + c93 * x3 + c94 * x4 + c95 * x5 + c96 * x6 +
+                      double q9 = fabs(c91 * x1 + c92 * x2 + c93 * x3 + c94 * x4 + c95 * x5 + c96 * x6 +
                                 c97 * x7 + c98 * x8 + c99 * x9 + c910 * x10 - d9);
 
-                      q10 = fabs(c101 * x1 + c102 * x2 + c103 * x3 + c104 * x4 + c105 * x5 +
+                      double q10 = fabs(c101 * x1 + c102 * x2 + c103 * x3 + c104 * x4 + c105 * x5 +
                                  c106 * x6 + c107 * x7 + c108 * x8 + c109 * x9 + c1010 * x10 - d10);
 
                       if ((q1 <= e1) && (q2 <= e2) && (q3 <= e3) && (q4 <= e4) && (q5 <= e5) &&
                           (q6 <= e6) && (q7 <= e7) && (q8 <= e8) && (q9 <= e9) && (q10 <= e10)) {
-                        #pragma omp critical
-                        {
-                          pnts = pnts + 1;
+                        pnts += 1;
 
-                          // xi's which satisfy the constraints to be written in file
+                        // xi's which satisfy the constraints to be written in file
+                        #pragma omp ordered
+                        {
                           fprintf(fptr, "%lf\t", x1);
                           fprintf(fptr, "%lf\t", x2);
                           fprintf(fptr, "%lf\t", x3);
