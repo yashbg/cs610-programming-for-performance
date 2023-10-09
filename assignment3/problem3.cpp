@@ -15,7 +15,7 @@ using std::endl;
 using std::chrono::duration_cast;
 using HR = std::chrono::high_resolution_clock;
 using HRTimer = HR::time_point;
-using std::chrono::microseconds;
+using std::chrono::nanoseconds;
 
 #define N (1 << 11)
 #define SSE_WIDTH_BITS (128)
@@ -70,9 +70,9 @@ void print128i_u64(__m128i var) {
 }
 
 // Tree reduction idea on every 128 bits vector data, involves 2 shifts, 3 adds, one broadcast
-int sse4_version(int* __restrict__ source, int* __restrict__ dest) {
-  __builtin_assume_aligned(source, ALIGN);
-  __builtin_assume_aligned(dest, ALIGN);
+int sse4_version(int* __restrict__ source, int* __restrict__ dest) {  
+  source = (int*)__builtin_assume_aligned(source, ALIGN);
+  dest = (int*)__builtin_assume_aligned(dest, ALIGN);
 
   // _MM_SHUFFLE(z, y, x, w) macro forms an integer mask according to the formula (z << 6) | (y <<
   // 4) | (x << 2) | w.
@@ -122,7 +122,7 @@ __attribute__((optimize("no-tree-vectorize"))) int main() {
   HRTimer start = HR::now();
   int val_ser = ref_version(array, ref_res);
   HRTimer end = HR::now();
-  auto duration = duration_cast<microseconds>(end - start).count();
+  auto duration = duration_cast<nanoseconds>(end - start).count();
   cout << "Serial version: " << val_ser << " time: " << duration << endl;
 
   int* omp_res = static_cast<int*>(aligned_alloc(ALIGN, N * sizeof(int)));
@@ -130,7 +130,7 @@ __attribute__((optimize("no-tree-vectorize"))) int main() {
   start = HR::now();
   int val_omp = omp_version(array, omp_res);
   end = HR::now();
-  duration = duration_cast<microseconds>(end - start).count();
+  duration = duration_cast<nanoseconds>(end - start).count();
   assert(val_ser == val_omp || printf("OMP result is wrong!\n"));
   cout << "OMP version: " << val_omp << " time: " << duration << endl;
   delete[] omp_res;
@@ -140,21 +140,21 @@ __attribute__((optimize("no-tree-vectorize"))) int main() {
   start = HR::now();
   int val_sse = sse4_version(array, sse_res);
   end = HR::now();
-  duration = duration_cast<microseconds>(end - start).count();
+  duration = duration_cast<nanoseconds>(end - start).count();
   assert(val_ser == val_sse || printf("SSE result is wrong!\n"));
   cout << "SSE version: " << val_sse << " time: " << duration << endl;
 
   // start = HR::now();
   // int val_avx2 = avx2_version(array, avx2_res);
   // end = HR::now();
-  // duration = duration_cast<microseconds>(end - start).count();
+  // duration = duration_cast<nanoseconds>(end - start).count();
   // assert(val_ser == val_avx2 || printf("AVX2 result is wrong!\n"));
   // cout << "AVX2 version: " << val_avx2 << " time: " << duration << endl;
 
   // start = HR::now();
   // int val_avx512 = avx512_version(array, avx2_res);
   // end = HR::now();
-  // duration = duration_cast<microseconds>(end - start).count();
+  // duration = duration_cast<nanoseconds>(end - start).count();
   // assert(val_ser == val_avx512 || printf("AVX512 result is wrong!\n"));
   // cout << "AVX512 version: " << val_avx512 << " time: " << duration << endl;
 
