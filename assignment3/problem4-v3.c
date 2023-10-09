@@ -176,7 +176,7 @@ void gridloopsearch(
   s10 = floor((dd29 - dd28) / dd30);
 
   // grid search starts
-  #pragma omp parallel for collapse(10) reduction(+ : pnts) ordered private(x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, q1, q2, q3, q4, q5, q6, q7, q8, q9, q10)
+  #pragma omp parallel for reduction(+ : pnts) private(x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, q1, q2, q3, q4, q5, q6, q7, q8, q9, q10)
   for (int r1 = 0; r1 < s1; ++r1) {
     for (int r2 = 0; r2 < s2; ++r2) {
       for (int r3 = 0; r3 < s3; ++r3) {
@@ -235,7 +235,7 @@ void gridloopsearch(
                         pnts += 1;
 
                         // xi's which satisfy the constraints to be written in file
-                        #pragma omp ordered
+                        #pragma omp critical
                         {
                           fprintf(fptr, "%lf\t", x1);
                           fprintf(fptr, "%lf\t", x2);
