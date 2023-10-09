@@ -112,7 +112,10 @@ int sse4_version(int* __restrict__ source, int* __restrict__ dest) {
 int avx2_version(int* source, int* dest) {
   source = (int*)__builtin_assume_aligned(source, ALIGN);
   dest = (int*)__builtin_assume_aligned(dest, ALIGN);
-  
+
+  const __m256i mask1 = _mm256_set_epi32(3, 3, 3, 3, 0, 0, 0, 0);
+  const __m256i mask2 = _mm256_set_epi32(7, 7, 7, 7, 7, 7, 7, 7);
+
   // Return vector of type __m256i with all elements set to zero, to be added as previous sum for
   // the first four elements.
   __m256i offset = _mm256_setzero_si256();
@@ -131,7 +134,7 @@ int avx2_version(int* source, int* dest) {
     x = _mm256_add_epi32(x, _mm256_slli_si256(x, 8));
     // x becomes [e+f+g+h,e+f+g,e+f,e,a+b+c+d,a+b+c,a+b,a].
     
-    __m256i tmp1 = _mm256_permutevar8x32_epi32(x, _mm256_set_epi32(3, 3, 3, 3, 0, 0, 0, 0));
+    __m256i tmp1 = _mm256_permutevar8x32_epi32(x, mask1);
     // tmp1 becomes [a+b+c+d,a+b+c+d,a+b+c+d,a+b+c+d,0,0,0,0].
     x = _mm256_add_epi32(x, tmp1); // Add packed 32-bit integers in x and tmp1.
     // x becomes [a+b+c+d+e+f+g+h,a+b+c+d+e+f+g,a+b+c+d+e+f,a+b+c+d+e,a+b+c+d,a+b+c,a+b,a].
@@ -143,9 +146,10 @@ int avx2_version(int* source, int* dest) {
     // boundary to be safe.
     _mm256_store_si256((__m256i*)&dest[i], x);
 
-    offset = _mm256_permutevar8x32_epi32(x, _mm256_set_epi32(7, 7, 7, 7, 7, 7, 7, 7));
+    offset = _mm256_permutevar8x32_epi32(x, mask2);
     // offset now contains 8 copies of a+b+c+d+e+f+g+h.
   }
+  
   return dest[N - 1];
 }
 
