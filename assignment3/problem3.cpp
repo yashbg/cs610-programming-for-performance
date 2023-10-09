@@ -112,11 +112,7 @@ int sse4_version(int* __restrict__ source, int* __restrict__ dest) {
 int avx2_version(int* source, int* dest) {
   source = (int*)__builtin_assume_aligned(source, ALIGN);
   dest = (int*)__builtin_assume_aligned(dest, ALIGN);
-
-  // _MM_SHUFFLE(z, y, x, w) macro forms an integer mask according to the formula (z << 6) | (y <<
-  // 4) | (x << 2) | w.
-  const int mask = _MM_SHUFFLE(3, 3, 3, 3); // todo
-
+  
   // Return vector of type __m256i with all elements set to zero, to be added as previous sum for
   // the first four elements.
   __m256i offset = _mm256_setzero_si256();
