@@ -20,6 +20,7 @@ using std::chrono::nanoseconds;
 #define N (1 << 11)
 #define SSE_WIDTH_BITS (128)
 #define AVX2_WIDTH_BITS (256)
+#define AVX512_WIDTH_BITS (512)
 #define ALIGN (64)
 
 void print_array(int* array) {
@@ -149,11 +150,39 @@ int avx2_version(int* source, int* dest) {
     offset = _mm256_permutevar8x32_epi32(x, mask2);
     // offset now contains 8 copies of a+b+c+d+e+f+g+h.
   }
-  
+
   return dest[N - 1];
 }
 
-int avx512_version(int* source, int* dest) { return 0; }
+int avx512_version(int* source, int* dest) {
+  source = (int*)__builtin_assume_aligned(source, ALIGN);
+  dest = (int*)__builtin_assume_aligned(dest, ALIGN);
+
+  const __m512i mask1 = _mm512_set_epi32(11, 11, 11, 11, 0, 0, 0, 0, 3, 3, 3, 3, 0, 0, 0, 0);
+  const __m512i mask2 = _mm512_set_epi32(7, 7, 7, 7, 7, 7, 7, 7, 0, 0, 0, 0, 0, 0, 0, 0);
+  const __m512i mask3 = _mm512_set_epi32(15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15);
+
+  __m512i offset = _mm512_setzero_si512();
+
+  const int stride = AVX512_WIDTH_BITS / (sizeof(int) * 8);
+  for (int i = 0; i < N; i += stride) {
+    __m512i x = _mm512_load_si512((__m512i*)&source[i]);
+
+    x = _mm512_add_epi32(x, _mm512_bslli_epi128(x, 4));
+    x = _mm512_add_epi32(x, _mm512_bslli_epi128(x, 8));
+    
+    x = _mm512_add_epi32(x, _mm512_permutexvar_epi32(mask1, x));
+    x = _mm512_add_epi32(x, _mm512_permutexvar_epi32(mask2, x));
+
+    x = _mm512_add_epi32(x, offset);
+
+    _mm512_store_si512((__m512i*)&dest[i], x);
+
+    offset = _mm512_permutexvar_epi32(mask3, x);
+  }
+  
+  return dest[N - 1];
+}
 
 __attribute__((optimize("no-tree-vectorize"))) int main() {
   int* array = static_cast<int*>(aligned_alloc(ALIGN, N * sizeof(int)));
@@ -194,13 +223,13 @@ __attribute__((optimize("no-tree-vectorize"))) int main() {
   assert(val_ser == val_avx2 || printf("AVX2 result is wrong!\n"));
   cout << "AVX2 version: " << val_avx2 << " time: " << duration << endl;
 
-  // int* avx512_res = static_cast<int*>(aligned_alloc(ALIGN, N * sizeof(int)));
-  // start = HR::now();
-  // int val_avx512 = avx512_version(array, avx512_res);
-  // end = HR::now();
-  // duration = duration_cast<nanoseconds>(end - start).count();
-  // assert(val_ser == val_avx512 || printf("AVX512 result is wrong!\n"));
-  // cout << "AVX512 version: " << val_avx512 << " time: " << duration << endl;
+  int* avx512_res = static_cast<int*>(aligned_alloc(ALIGN, N * sizeof(int)));
+  start = HR::now();
+  int val_avx512 = avx512_version(array, avx512_res);
+  end = HR::now();
+  duration = duration_cast<nanoseconds>(end - start).count();
+  assert(val_ser == val_avx512 || printf("AVX512 result is wrong!\n"));
+  cout << "AVX512 version: " << val_avx512 << " time: " << duration << endl;
 
   return EXIT_SUCCESS;
 }
