@@ -82,7 +82,7 @@ int sse4_version(int* __restrict__ source, int* __restrict__ dest) {
   // the first four elements.
   __m128i offset = _mm_setzero_si128();
 
-  const int stride = SSE_WIDTH_BITS / sizeof(int);
+  const int stride = SSE_WIDTH_BITS / (sizeof(int) * 8);
   for (int i = 0; i < N; i += stride) {
     // Load 128-bits of integer data from memory into x. source_addr must be aligned on a 16-byte
     // boundary to be safe.
