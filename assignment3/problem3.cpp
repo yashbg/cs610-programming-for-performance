@@ -109,7 +109,49 @@ int sse4_version(int* __restrict__ source, int* __restrict__ dest) {
   return dest[N - 1];
 }
 
-int avx2_version(int* source, int* dest) { return 0; }
+int avx2_version(int* source, int* dest) {
+  source = (int*)__builtin_assume_aligned(source, ALIGN);
+  dest = (int*)__builtin_assume_aligned(dest, ALIGN);
+
+  // _MM_SHUFFLE(z, y, x, w) macro forms an integer mask according to the formula (z << 6) | (y <<
+  // 4) | (x << 2) | w.
+  const int mask = _MM_SHUFFLE(3, 3, 3, 3); // todo
+
+  // Return vector of type __m256i with all elements set to zero, to be added as previous sum for
+  // the first four elements.
+  __m256i offset = _mm256_setzero_si256();
+
+  const int stride = AVX2_WIDTH_BITS / (sizeof(int) * 8);
+  for (int i = 0; i < N; i += stride) {
+    // Load 256-bits of integer data from memory into x. source_addr must be aligned on a 32-byte
+    // boundary to be safe.
+    __m256i x = _mm256_load_si256((__m256i*)&source[i]);
+    
+    // Let the numbers in x be [h,g,f,e,d,c,b,a], where a is at source[i].
+
+    x = _mm256_add_epi32(x, _mm256_slli_si256(x, 4));
+    // x becomes [g+h,f+g,e+f,e,c+d,b+c,a+b,a].
+
+    x = _mm256_add_epi32(x, _mm256_slli_si256(x, 8));
+    // x becomes [e+f+g+h,e+f+g,e+f,e,a+b+c+d,a+b+c,a+b,a].
+    
+    __m256i tmp1 = _mm256_permutevar8x32_epi32(x, _mm256_set_epi32(3, 3, 3, 3, 0, 0, 0, 0));
+    // tmp1 becomes [a+b+c+d,a+b+c+d,a+b+c+d,a+b+c+d,0,0,0,0].
+    x = _mm256_add_epi32(x, tmp1); // Add packed 32-bit integers in x and tmp1.
+    // x becomes [a+b+c+d+e+f+g+h,a+b+c+d+e+f+g,a+b+c+d+e+f,a+b+c+d+e,a+b+c+d,a+b+c,a+b,a].
+
+    x = _mm256_add_epi32(x, offset);
+    // x now includes the sum from the previous set of numbers, given by offset.
+
+    // Store 256-bits of integer data from x into memory. dest_addr must be aligned on a 32-byte
+    // boundary to be safe.
+    _mm256_store_si256((__m256i*)&dest[i], x);
+
+    offset = _mm256_permutevar8x32_epi32(x, _mm256_set_epi32(7, 7, 7, 7, 7, 7, 7, 7));
+    // offset now contains 8 copies of a+b+c+d+e+f+g+h.
+  }
+  return dest[N - 1];
+}
 
 int avx512_version(int* source, int* dest) { return 0; }
 
@@ -144,15 +186,17 @@ __attribute__((optimize("no-tree-vectorize"))) int main() {
   assert(val_ser == val_sse || printf("SSE result is wrong!\n"));
   cout << "SSE version: " << val_sse << " time: " << duration << endl;
 
-  // start = HR::now();
-  // int val_avx2 = avx2_version(array, avx2_res);
-  // end = HR::now();
-  // duration = duration_cast<nanoseconds>(end - start).count();
-  // assert(val_ser == val_avx2 || printf("AVX2 result is wrong!\n"));
-  // cout << "AVX2 version: " << val_avx2 << " time: " << duration << endl;
+  int* avx2_res = static_cast<int*>(aligned_alloc(ALIGN, N * sizeof(int)));
+  start = HR::now();
+  int val_avx2 = avx2_version(array, avx2_res);
+  end = HR::now();
+  duration = duration_cast<nanoseconds>(end - start).count();
+  assert(val_ser == val_avx2 || printf("AVX2 result is wrong!\n"));
+  cout << "AVX2 version: " << val_avx2 << " time: " << duration << endl;
 
+  // int* avx512_res = static_cast<int*>(aligned_alloc(ALIGN, N * sizeof(int)));
   // start = HR::now();
-  // int val_avx512 = avx512_version(array, avx2_res);
+  // int val_avx512 = avx512_version(array, avx512_res);
   // end = HR::now();
   // duration = duration_cast<nanoseconds>(end - start).count();
   // assert(val_ser == val_avx512 || printf("AVX512 result is wrong!\n"));
