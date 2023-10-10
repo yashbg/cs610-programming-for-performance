@@ -162,18 +162,23 @@ int avx512_version(int* source, int* dest) {
   const __m512i mask2 = _mm512_set_epi32(7, 7, 7, 7, 7, 7, 7, 7, 0, 0, 0, 0, 0, 0, 0, 0);
   const __m512i mask3 = _mm512_set_epi32(15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15);
 
+  // Return vector of type __m256i with all elements set to zero, to be added as previous sum for
+  // the first four elements.
   __m512i offset = _mm512_setzero_si512();
 
   const int stride = AVX512_WIDTH_BITS / (sizeof(int) * 8);
   for (int i = 0; i < N; i += stride) {
     __m512i x = _mm512_load_si512((__m512i*)&source[i]);
 
+    // Compute local prefix sums in 128-bit lanes
     x = _mm512_add_epi32(x, _mm512_bslli_epi128(x, 4));
     x = _mm512_add_epi32(x, _mm512_bslli_epi128(x, 8));
-    
+
+    // Accumulate these local prefix sums
     x = _mm512_add_epi32(x, _mm512_permutexvar_epi32(mask1, x));
     x = _mm512_add_epi32(x, _mm512_permutexvar_epi32(mask2, x));
 
+    // Add sum from previous set of numbers
     x = _mm512_add_epi32(x, offset);
 
     _mm512_store_si512((__m512i*)&dest[i], x);
