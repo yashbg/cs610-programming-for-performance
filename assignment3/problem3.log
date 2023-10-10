@@ -1,0 +1,5 @@
+Serial version: 2048 time: 1290
+OMP version: 2048 time: 1477
+SSE version: 2048, time: 768, speedup wrt serial version: 1.67969, speedup wrt OMP version: 1.92318
+AVX2 version: 2048, time: 1542, speedup wrt serial version: 0.836576, speedup wrt OMP version: 0.957847
+AVX512 version: 2048, time: 2246, speedup wrt serial version: 0.574354, speedup wrt OMP version: 0.657614

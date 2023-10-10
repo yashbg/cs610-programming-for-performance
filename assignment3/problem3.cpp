@@ -193,17 +193,17 @@ __attribute__((optimize("no-tree-vectorize"))) int main() {
   HRTimer start = HR::now();
   int val_ser = ref_version(array, ref_res);
   HRTimer end = HR::now();
-  auto duration = duration_cast<nanoseconds>(end - start).count();
-  cout << "Serial version: " << val_ser << " time: " << duration << endl;
+  auto duration_ref = duration_cast<nanoseconds>(end - start).count();
+  cout << "Serial version: " << val_ser << " time: " << duration_ref << endl;
 
   int* omp_res = static_cast<int*>(aligned_alloc(ALIGN, N * sizeof(int)));
   std::fill(omp_res, omp_res + N, 0);
   start = HR::now();
   int val_omp = omp_version(array, omp_res);
   end = HR::now();
-  duration = duration_cast<nanoseconds>(end - start).count();
+  auto duration_omp = duration_cast<nanoseconds>(end - start).count();
   assert(val_ser == val_omp || printf("OMP result is wrong!\n"));
-  cout << "OMP version: " << val_omp << " time: " << duration << endl;
+  cout << "OMP version: " << val_omp << " time: " << duration_omp << endl;
   delete[] omp_res;
 
   int* sse_res = static_cast<int*>(aligned_alloc(ALIGN, N * sizeof(int)));
@@ -211,9 +211,9 @@ __attribute__((optimize("no-tree-vectorize"))) int main() {
   start = HR::now();
   int val_sse = sse4_version(array, sse_res);
   end = HR::now();
-  duration = duration_cast<nanoseconds>(end - start).count();
+  auto duration = duration_cast<nanoseconds>(end - start).count();
   assert(val_ser == val_sse || printf("SSE result is wrong!\n"));
-  cout << "SSE version: " << val_sse << " time: " << duration << endl;
+  cout << "SSE version: " << val_sse << ", time: " << duration << ", speedup wrt serial version: " << (float)duration_ref / duration << ", speedup wrt OMP version: " << (float)duration_omp / duration << endl;
 
   int* avx2_res = static_cast<int*>(aligned_alloc(ALIGN, N * sizeof(int)));
   start = HR::now();
@@ -221,7 +221,7 @@ __attribute__((optimize("no-tree-vectorize"))) int main() {
   end = HR::now();
   duration = duration_cast<nanoseconds>(end - start).count();
   assert(val_ser == val_avx2 || printf("AVX2 result is wrong!\n"));
-  cout << "AVX2 version: " << val_avx2 << " time: " << duration << endl;
+  cout << "AVX2 version: " << val_avx2 << ", time: " << duration << ", speedup wrt serial version: " << (float)duration_ref / duration << ", speedup wrt OMP version: " << (float)duration_omp / duration << endl;
 
   int* avx512_res = static_cast<int*>(aligned_alloc(ALIGN, N * sizeof(int)));
   start = HR::now();
@@ -229,7 +229,7 @@ __attribute__((optimize("no-tree-vectorize"))) int main() {
   end = HR::now();
   duration = duration_cast<nanoseconds>(end - start).count();
   assert(val_ser == val_avx512 || printf("AVX512 result is wrong!\n"));
-  cout << "AVX512 version: " << val_avx512 << " time: " << duration << endl;
+  cout << "AVX512 version: " << val_avx512 << ", time: " << duration << ", speedup wrt serial version: " << (float)duration_ref / duration << ", speedup wrt OMP version: " << (float)duration_omp / duration << endl;
 
   return EXIT_SUCCESS;
 }
