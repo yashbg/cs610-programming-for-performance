@@ -151,16 +151,16 @@ void gridloopsearch(
   e9 = kk * ey9;
   e10 = kk * ey10;
 
-  // x1 = dd1;
-  // x2 = dd4;
-  // x3 = dd7;
-  // x4 = dd10;
-  // x5 = dd13;
-  // x6 = dd16;
-  // x7 = dd19;
-  // x8 = dd22;
-  // x9 = dd25;
-  // x10 = dd28;
+  x1 = dd1;
+  x2 = dd4;
+  x3 = dd7;
+  x4 = dd10;
+  x5 = dd13;
+  x6 = dd16;
+  x7 = dd19;
+  x8 = dd22;
+  x9 = dd25;
+  x10 = dd28;
 
   // for loop upper values
   int s1, s2, s3, s4, s5, s6, s7, s8, s9, s10;
@@ -186,16 +186,17 @@ void gridloopsearch(
               for (int r7 = 0; r7 < s7; ++r7) {
                 for (int r8 = 0; r8 < s8; ++r8) {
                   for (int r9 = 0; r9 < s9; ++r9) {
+                    x1 = dd1 + r1 * dd3;
+                    x2 = dd4 + r2 * dd6;
+                    x3 = dd7 + r3 * dd9;
+                    x4 = dd10 + r4 * dd12;
+                    x5 = dd13 + r5 * dd15;
+                    x6 = dd16 + r6 * dd18;
+                    x7 = dd19 + r7 * dd21;
+                    x8 = dd22 + r8 * dd24;
+                    x9 = dd25 + r9 * dd27;
+                    
                     for (int r10 = 0; r10 < s10; ++r10) {
-                      x1 = dd1 + r1 * dd3;
-                      x2 = dd4 + r2 * dd6;
-                      x3 = dd7 + r3 * dd9;
-                      x4 = dd10 + r4 * dd12;
-                      x5 = dd13 + r5 * dd15;
-                      x6 = dd16 + r6 * dd18;
-                      x7 = dd19 + r7 * dd21;
-                      x8 = dd22 + r8 * dd24;
-                      x9 = dd25 + r9 * dd27;
                       x10 = dd28 + r10 * dd30;
 
                       // constraints
