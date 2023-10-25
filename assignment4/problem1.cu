@@ -5,10 +5,14 @@
 #include <cuda.h>
 #include <iostream>
 #include <sys/time.h>
+#include <algorithm>
 
 const uint64_t N = (64);
 #define THRESHOLD (0.000001)
+
 const uint64_t MAX_VAL = 1e6;
+const int TILE_DIM = 16;
+const int BLOCK_DIM_Z = 8;
 
 using std::cerr;
 using std::cout;
@@ -25,22 +29,57 @@ inline void gpuAssert(cudaError_t code, const char* file, int line, bool abort =
 }
 
 __global__ void kernel1(const double *in, double *out) {
-  int i = blockIdx.x * blockDim.x + threadIdx.x;
-  int j = blockIdx.y * blockDim.y + threadIdx.y;
-  int k = blockIdx.z * blockDim.z + threadIdx.z;
-
-  if (i > 0 && i < N - 1 && j > 0 && j < N - 1 && k > 0 && k < N - 1) {
-    out[i * N * N + j * N + k] = 0.8 * (in[(i - 1) * N * N + j * N + k]
-                                      + in[(i + 1) * N * N + j * N + k]
-                                      + in[i * N * N + (j - 1) * N + k]
-                                      + in[i * N * N + (j + 1) * N + k]
-                                      + in[i * N * N + j * N + (k - 1)]
-                                      + in[i * N * N + j * N + (k + 1)]);
+  int block_rows = blockDim.y;
+  int x = blockIdx.x * TILE_DIM + threadIdx.x;
+  int y = blockIdx.y * TILE_DIM + threadIdx.y;
+  int z = blockIdx.z * blockDim.z + threadIdx.z;
+  
+  for (int j = 0; j < TILE_DIM; j += block_rows) {
+    if (x > 0 && x < N - 1 && y + j > 0 && y + j < N - 1 && z > 0 && z < N - 1) {
+      int idx = z * N * N + (y + j) * N + x;
+      out[idx] = 0.8 * (in[(z - 1) * N * N + (y + j) * N + x]
+                      + in[(z + 1) * N * N + (y + j) * N + x]
+                      + in[z * N * N + (y + j - 1) * N + x]
+                      + in[z * N * N + (y + j + 1) * N + x]
+                      + in[z * N * N + (y + j) * N + (x - 1)]
+                      + in[z * N * N + (y + j) * N + (x + 1)]);
+    }
   }
 }
 
-// TODO: Edit the function definition as required
-__global__ void kernel2() {}
+__global__ void kernel2(const double *in, double *out) {
+  __shared__ double tile[TILE_DIM * TILE_DIM * BLOCK_DIM_Z];
+
+  int block_rows = blockDim.y;
+  int x = blockIdx.x * TILE_DIM + threadIdx.x;
+  int y = blockIdx.y * TILE_DIM + threadIdx.y;
+  int z = blockIdx.z * blockDim.z + threadIdx.z;
+  
+  for (int j = 0; j < TILE_DIM; j += block_rows) {
+    if (x > 0 && x < N - 1 && y + j > 0 && y + j < N - 1 && z > 0 && z < N - 1) {
+      int idx = threadIdx.z * TILE_DIM * TILE_DIM
+              + (threadIdx.y + j) * TILE_DIM
+              + threadIdx.x;
+      tile[idx] = 0.8 * (in[(z - 1) * N * N + (y + j) * N + x]
+                       + in[(z + 1) * N * N + (y + j) * N + x]
+                       + in[z * N * N + (y + j - 1) * N + x]
+                       + in[z * N * N + (y + j + 1) * N + x]
+                       + in[z * N * N + (y + j) * N + (x - 1)]
+                       + in[z * N * N + (y + j) * N + (x + 1)]);
+    }
+  }
+
+  __syncthreads();
+
+  for (int j = 0; j < TILE_DIM; j += block_rows) {
+    if (x > 0 && x < N - 1 && y + j > 0 && y + j < N - 1 && z > 0 && z < N - 1) {
+      int idx = threadIdx.z * TILE_DIM * TILE_DIM
+              + (threadIdx.y + j) * TILE_DIM
+              + threadIdx.x;
+      out[z * N * N + (y + j) * N + x] = tile[idx];
+    }
+  }
+}
 
 __host__ void stencil(const double *in, double *out) {
   for (int i = 1; i < N - 1; i++) {
@@ -114,10 +153,10 @@ int main() {
   double *h_out = static_cast<double *>(malloc(SIZE * sizeof(double)));
 
   for (int i = 0; i < SIZE; i++) {
-    h_in[i] = rand() % MAX_VAL;
-    h_out_serial[i] = 0.0;
-    h_out[i] = 0.0;
+    h_in[i] = std::rand() % MAX_VAL;
   }
+  std::fill_n(h_out_serial, SIZE, 0.0);
+  std::fill_n(h_out, SIZE, 0.0);
 
   double clkbegin = rtclock();
   stencil(h_in, h_out_serial);
@@ -138,24 +177,34 @@ int main() {
   cudaCheckError(cudaEventCreate(&end));
   cudaCheckError(cudaEventRecord(start));
 
-  dim3 threadsPerBlock(1, 32, 32);
-  dim3 numBlocks(N / threadsPerBlock.x, N / threadsPerBlock.y, N / threadsPerBlock.z);
-  kernel1<<<numBlocks, threadsPerBlock>>>(d_in, d_out);
+  int block_rows = 8;
+  dim3 dimBlock(TILE_DIM, block_rows, BLOCK_DIM_Z);
+  dim3 dimGrid(N / TILE_DIM, N / TILE_DIM, N / BLOCK_DIM_Z);
+  kernel1<<<dimGrid, dimBlock>>>(d_in, d_out);
   
   cudaCheckError(cudaEventRecord(end));
   cudaCheckError(cudaEventSynchronize(end));
 
   cudaCheckError(cudaMemcpy(h_out, d_out, SIZE * sizeof(double),
                             cudaMemcpyDeviceToHost));
-
   check_result(h_out_serial, h_out, N);
 
   float kernel_time;
   cudaCheckError(cudaEventElapsedTime(&kernel_time, start, end));
   std::cout << "Kernel 1 time (ms): " << kernel_time << "\n";
 
-  // TODO: Fill in kernel2
-  // TODO: Adapt check_result() and invoke
+  std::fill_n(h_out, SIZE, 0.0);
+  cudaCheckError(cudaEventRecord(start));
+
+  kernel2<<<dimGrid, dimBlock>>>(d_in, d_out);
+
+  cudaCheckError(cudaEventRecord(end));
+  cudaCheckError(cudaEventSynchronize(end));
+
+  cudaCheckError(cudaMemcpy(h_out, d_out, SIZE * sizeof(double),
+                            cudaMemcpyDeviceToHost));
+  check_result(h_out_serial, h_out, N);
+
   cudaCheckError(cudaEventElapsedTime(&kernel_time, start, end));
   std::cout << "Kernel 2 time (ms): " << kernel_time << "\n";
 
