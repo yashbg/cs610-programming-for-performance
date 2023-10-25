@@ -29,8 +29,20 @@ __global__ void kernel1() {}
 // TODO: Edit the function definition as required
 __global__ void kernel2() {}
 
-// TODO: Edit the function definition as required
-__host__ void stencil() {}
+__host__ void stencil(const double *in, double *out) {
+  for (int i = 1; i < N - 1; i++) {
+    for (int j = 1; j < N - 1; j++) {
+      for (int k = 1; k < N - 1; k++) {
+        out[i * N * N + j * N + k] = 0.8 * (in[(i - 1) * N * N + j * N + k]
+                                          + in[(i + 1) * N * N + j * N + k]
+                                          + in[i * N * N + (j - 1) * N + k]
+                                          + in[i * N * N + (j + 1) * N + k]
+                                          + in[i * N * N + j * N + (k - 1)]
+                                          + in[i * N * N + j * N + (k + 1)]);
+      }
+    }
+  }
+}
 
 __host__ void check_result(const double* w_ref, const double* w_opt, const uint64_t size) {
   double maxdiff = 0.0, this_diff = 0.0;
@@ -84,8 +96,11 @@ double rtclock() { // Seconds
 int main() {
   uint64_t SIZE = N * N * N;
 
+  double *h_in = static_cast<double *>(malloc(SIZE * sizeof(double)));
+  double *h_out = static_cast<double *>(malloc(SIZE * sizeof(double)));
+
   double clkbegin = rtclock();
-  stencil();
+  stencil(h_in, h_out);
   double clkend = rtclock();
   double cpu_time = clkend - clkbegin;
   cout << "Stencil time on CPU: " << cpu_time * 1000 << " msec" << endl;
