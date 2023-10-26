@@ -58,6 +58,10 @@ __global__ void kernel(const float *in, float *out) {
   out[thid] = temp[pout * N + thid];
 }
 
+void thrust_prefix_sum(const float *in, float *out) {
+  thrust::exclusive_scan(in, in + N, out);
+}
+
 void print_array(float *arr) {
   for (int i = 0; i < N; i++) {
     cout << arr[i] << " ";
@@ -97,7 +101,7 @@ int main() {
   std::fill(ref_out, ref_out + N, 0);
 
   HRTimer hr_start = HR::now();
-  thrust::exclusive_scan(h_in, h_in + N, ref_out);
+  thrust_prefix_sum(h_in, ref_out);
   HRTimer hr_end = HR::now();
   float duration = duration_cast<nanoseconds>(hr_end - hr_start).count();
   cout << "Thrust time (ms): " << duration / 1000000 << endl;
