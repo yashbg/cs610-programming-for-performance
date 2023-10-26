@@ -175,13 +175,13 @@ int main() {
   cudaEvent_t start, end;
   cudaCheckError(cudaEventCreate(&start));
   cudaCheckError(cudaEventCreate(&end));
-  cudaCheckError(cudaEventRecord(start));
 
   int block_rows = 8;
   dim3 dimBlock(TILE_DIM, block_rows, BLOCK_DIM_Z);
   dim3 dimGrid(N / TILE_DIM, N / TILE_DIM, N / BLOCK_DIM_Z);
+
+  cudaCheckError(cudaEventRecord(start));
   kernel1<<<dimGrid, dimBlock>>>(d_in, d_out);
-  
   cudaCheckError(cudaEventRecord(end));
   cudaCheckError(cudaEventSynchronize(end));
 
@@ -194,10 +194,9 @@ int main() {
   std::cout << "Kernel 1 time (ms): " << kernel_time << "\n";
 
   std::fill_n(h_out, SIZE, 0.0);
+
   cudaCheckError(cudaEventRecord(start));
-
   kernel2<<<dimGrid, dimBlock>>>(d_in, d_out);
-
   cudaCheckError(cudaEventRecord(end));
   cudaCheckError(cudaEventSynchronize(end));
 
