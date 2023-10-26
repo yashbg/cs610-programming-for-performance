@@ -11,6 +11,7 @@
 
 const uint64_t N = 1 << 10;
 #define THRESHOLD (0.000001)
+const uint64_t MAX_VAL = 1e3;
 
 using std::cerr;
 using std::cout;
@@ -88,7 +89,9 @@ __host__ void check_result(const float* w_ref, const float* w_opt, const uint64_
 
 int main() {
   float *h_in = static_cast<float *>(malloc(N * sizeof(float)));
-  std::fill(h_in, h_in + N, 1);
+  for (int i = 0; i < N; i++) {
+    h_in[i] = std::rand() % MAX_VAL;
+  }
 
   float *ref_out = static_cast<float *>(malloc(N * sizeof(float)));
   std::fill(ref_out, ref_out + N, 0);
