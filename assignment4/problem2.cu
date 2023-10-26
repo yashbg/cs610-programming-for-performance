@@ -133,7 +133,6 @@ int main() {
   cudaCheckError(cudaEventElapsedTime(&kernel_time, start, end));
   cout << "Kernel time (ms): " << kernel_time << endl;
 
-  // TODO: Free memory
   cudaCheckError(cudaEventDestroy(start));
   cudaCheckError(cudaEventDestroy(end));
   cudaCheckError(cudaFree(d_in));
