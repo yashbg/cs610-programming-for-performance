@@ -207,7 +207,14 @@ int main() {
   cudaCheckError(cudaEventElapsedTime(&kernel_time, start, end));
   std::cout << "Kernel 2 time (ms): " << kernel_time << "\n";
 
-  // TODO: Free memory
+  cudaCheckError(cudaEventDestroy(start));
+  cudaCheckError(cudaEventDestroy(end));
+  cudaCheckError(cudaFree(d_in));
+  cudaCheckError(cudaFree(d_out));
+
+  free(h_in);
+  free(h_out_serial);
+  free(h_out);
 
   return EXIT_SUCCESS;
 }
