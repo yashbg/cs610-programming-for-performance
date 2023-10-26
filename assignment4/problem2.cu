@@ -9,7 +9,7 @@
 #include <chrono>
 #include <thrust/scan.h>
 
-const uint64_t N = 1 << 9;
+const uint64_t N = 1 << 10;
 #define THRESHOLD (0.000001)
 
 using std::cerr;
@@ -30,8 +30,35 @@ inline void gpuAssert(cudaError_t code, const char* file, int line, bool abort =
   }
 }
 
-void print_array(int *arr) {
-  for (int i = 0; i < N; ++i) {
+__global__ void kernel(const float *in, float *out) {
+  __shared__ float temp[2 * N];
+
+  int thid = threadIdx.x;
+
+  int pout = 0;
+  int pin = 1;
+
+  temp[pout * N + thid] = (thid > 0) ? in[thid - 1] : 0;
+
+  for (int offset = 1; offset < N; offset *= 2) {
+    pout = 1 - pout;
+    pin  = 1 - pout;
+    __syncthreads();
+
+    temp[pout * N + thid] = temp[pin * N + thid]; 
+
+    if (thid >= offset) {
+      temp[pout * N + thid] += temp[pin * N + thid - offset];
+    }
+  }
+
+  __syncthreads();
+
+  out[thid] = temp[pout * N + thid];
+}
+
+void print_array(float *arr) {
+  for (int i = 0; i < N; i++) {
     cout << arr[i] << " ";
   }
   cout << endl;
@@ -60,26 +87,50 @@ __host__ void check_result(const float* w_ref, const float* w_opt, const uint64_
 }
 
 int main() {
-  int *array = static_cast<int *>(malloc(N * sizeof(int)));
-  std::fill(array, array + N, 1);
+  float *h_in = static_cast<float *>(malloc(N * sizeof(float)));
+  std::fill(h_in, h_in + N, 1);
 
-  int *ref_res = static_cast<int *>(malloc(N * sizeof(int)));
-  std::fill(ref_res, ref_res + N, 0);
+  float *ref_out = static_cast<float *>(malloc(N * sizeof(float)));
+  std::fill(ref_out, ref_out + N, 0);
 
-  HRTimer start = HR::now();
-  thrust::exclusive_scan(array, array + N, ref_res);
-  HRTimer end = HR::now();
-  auto duration = duration_cast<nanoseconds>(end - start).count();
-  cout << "Thrust time (ns): " << duration << endl;
+  HRTimer hr_start = HR::now();
+  thrust::exclusive_scan(h_in, h_in + N, ref_out);
+  HRTimer hr_end = HR::now();
+  float duration = duration_cast<nanoseconds>(hr_end - hr_start).count();
+  cout << "Thrust time (ms): " << duration / 1000000 << endl;
 
-  int *cuda_res = static_cast<int *>(malloc(N * sizeof(int)));
-  std::fill(cuda_res, cuda_res + N, 0);
+  float *h_out = static_cast<float *>(malloc(N * sizeof(float)));
+  std::fill(h_out, h_out + N, 0);
 
-  start = HR::now();
-  // TODO: call kernel
-  end = HR::now();
-  auto duration = duration_cast<nanoseconds>(end - start).count();
-  cout << "CUDA time (ns): " << duration << endl;
+  float *d_in;
+  cudaCheckError(cudaMalloc(&d_in, N * sizeof(float)));
+  float *d_out;
+  cudaCheckError(cudaMalloc(&d_out, N * sizeof(float)));
+
+  cudaCheckError(cudaMemcpy(d_in, h_in, N * sizeof(float),
+                            cudaMemcpyHostToDevice));
+
+  cudaEvent_t start, end;
+  cudaCheckError(cudaEventCreate(&start));
+  cudaCheckError(cudaEventCreate(&end));
+
+  int dimBlock = N;
+  int dimGrid = 1;
+  
+  cudaCheckError(cudaEventRecord(start));
+  kernel<<<dimGrid, dimBlock>>>(d_in, d_out);
+  cudaCheckError(cudaEventRecord(end));
+  cudaCheckError(cudaEventSynchronize(end));
+
+  cudaCheckError(cudaMemcpy(h_out, d_out, N * sizeof(float),
+                            cudaMemcpyDeviceToHost));
+  check_result(ref_out, h_out, N);
+
+  float kernel_time;
+  cudaCheckError(cudaEventElapsedTime(&kernel_time, start, end));
+  cout << "Kernel time (ms): " << kernel_time << endl;
+
+  // TODO: Free memory
 
   return EXIT_SUCCESS;
 }
