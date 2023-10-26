@@ -28,7 +28,7 @@ inline void gpuAssert(cudaError_t code, const char* file, int line, bool abort =
   }
 }
 
-__global__ void kernel1(const double *in, double *out) {
+__global__ void kernel1(const float *in, float *out) {
   int block_rows = blockDim.y;
   int x = blockIdx.x * TILE_DIM + threadIdx.x;
   int y = blockIdx.y * TILE_DIM + threadIdx.y;
@@ -47,8 +47,8 @@ __global__ void kernel1(const double *in, double *out) {
   }
 }
 
-__global__ void kernel2(const double *in, double *out) {
-  __shared__ double tile[TILE_DIM * TILE_DIM * BLOCK_DIM_Z];
+__global__ void kernel2(const float *in, float *out) {
+  __shared__ float tile[TILE_DIM * TILE_DIM * BLOCK_DIM_Z];
 
   int block_rows = blockDim.y;
   int x = blockIdx.x * TILE_DIM + threadIdx.x;
@@ -81,7 +81,7 @@ __global__ void kernel2(const double *in, double *out) {
   }
 }
 
-__host__ void stencil(const double *in, double *out) {
+__host__ void stencil(const float *in, float *out) {
   for (int i = 1; i < N - 1; i++) {
     for (int j = 1; j < N - 1; j++) {
       for (int k = 1; k < N - 1; k++) {
@@ -96,8 +96,8 @@ __host__ void stencil(const double *in, double *out) {
   }
 }
 
-__host__ void check_result(const double* w_ref, const double* w_opt, const uint64_t size) {
-  double maxdiff = 0.0, this_diff = 0.0;
+__host__ void check_result(const float* w_ref, const float* w_opt, const uint64_t size) {
+  float maxdiff = 0.0, this_diff = 0.0;
   int numdiffs = 0;
 
   for (uint64_t i = 0; i < size; i++) {
@@ -122,7 +122,7 @@ __host__ void check_result(const double* w_ref, const double* w_opt, const uint6
   }
 }
 
-void print_mat(double* A) {
+void print_mat(float* A) {
   for (int i = 0; i < N; ++i) {
     for (int j = 0; j < N; ++j) {
       for (int k = 0; k < N; ++k) {
@@ -148,9 +148,9 @@ double rtclock() { // Seconds
 int main() {
   uint64_t SIZE = N * N * N;
 
-  double *h_in = static_cast<double *>(malloc(SIZE * sizeof(double)));
-  double *h_out_serial = static_cast<double *>(malloc(SIZE * sizeof(double)));
-  double *h_out = static_cast<double *>(malloc(SIZE * sizeof(double)));
+  float *h_in = static_cast<float *>(malloc(SIZE * sizeof(float)));
+  float *h_out_serial = static_cast<float *>(malloc(SIZE * sizeof(float)));
+  float *h_out = static_cast<float *>(malloc(SIZE * sizeof(float)));
 
   for (int i = 0; i < SIZE; i++) {
     h_in[i] = std::rand() % MAX_VAL;
@@ -164,12 +164,12 @@ int main() {
   double cpu_time = clkend - clkbegin;
   cout << "Stencil time on CPU: " << cpu_time * 1000 << " msec" << endl;
 
-  double *d_in;
-  cudaCheckError(cudaMalloc(&d_in, SIZE * sizeof(double)));
-  double *d_out;
-  cudaCheckError(cudaMalloc(&d_out, SIZE * sizeof(double)));
+  float *d_in;
+  cudaCheckError(cudaMalloc(&d_in, SIZE * sizeof(float)));
+  float *d_out;
+  cudaCheckError(cudaMalloc(&d_out, SIZE * sizeof(float)));
 
-  cudaCheckError(cudaMemcpy(d_in, h_in, SIZE * sizeof(double),
+  cudaCheckError(cudaMemcpy(d_in, h_in, SIZE * sizeof(float),
                             cudaMemcpyHostToDevice));
 
   cudaEvent_t start, end;
@@ -185,7 +185,7 @@ int main() {
   cudaCheckError(cudaEventRecord(end));
   cudaCheckError(cudaEventSynchronize(end));
 
-  cudaCheckError(cudaMemcpy(h_out, d_out, SIZE * sizeof(double),
+  cudaCheckError(cudaMemcpy(h_out, d_out, SIZE * sizeof(float),
                             cudaMemcpyDeviceToHost));
   check_result(h_out_serial, h_out, N);
 
@@ -201,7 +201,7 @@ int main() {
   cudaCheckError(cudaEventRecord(end));
   cudaCheckError(cudaEventSynchronize(end));
 
-  cudaCheckError(cudaMemcpy(h_out, d_out, SIZE * sizeof(double),
+  cudaCheckError(cudaMemcpy(h_out, d_out, SIZE * sizeof(float),
                             cudaMemcpyDeviceToHost));
   check_result(h_out_serial, h_out, N);
 
