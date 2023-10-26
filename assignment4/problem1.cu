@@ -164,6 +164,8 @@ int main() {
   double cpu_time = (clkend - clkbegin) * 1000;
   cout << "Stencil time on CPU: " << cpu_time << " msec" << endl << endl;
 
+  // naïve CUDA kernel
+
   float *d_in;
   cudaCheckError(cudaMalloc(&d_in, SIZE * sizeof(float)));
   float *d_out;
@@ -193,6 +195,8 @@ int main() {
   cudaCheckError(cudaEventElapsedTime(&kernel_time, start, end));
   cout << "Kernel 1 time (ms): " << kernel_time << ", Speedup: " << cpu_time / kernel_time << endl << endl;
 
+  // shared memory tiling
+
   int block_rows_arr[] = {1, 2, 4, 8};
   for (auto block_rows : block_rows_arr) {
     std::fill_n(h_out, SIZE, 0.0);
@@ -212,6 +216,8 @@ int main() {
     cudaCheckError(cudaEventElapsedTime(&kernel_time, start, end));
     cout << "Kernel 2 (block size = " << block_rows << ") time (ms): " << kernel_time << ", Speedup: " << cpu_time / kernel_time << endl << endl;
   }
+
+  // pinned memory
 
   float *h_in_pinned;
   cudaCheckError(cudaHostAlloc(&h_in_pinned, SIZE * sizeof(float),
@@ -239,6 +245,8 @@ int main() {
 
   cudaCheckError(cudaEventElapsedTime(&kernel_time, start, end));
   cout << "Kernel 2 (pinned memory) time (ms): " << kernel_time << ", Speedup: " << cpu_time / kernel_time << endl << endl;
+
+  // unified virtual memory
 
   float *in_uvm;
   cudaCheckError(cudaMallocManaged(&in_uvm, SIZE * sizeof(float)));
