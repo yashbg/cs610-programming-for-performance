@@ -161,8 +161,8 @@ int main() {
   double clkbegin = rtclock();
   stencil(h_in, h_out_serial);
   double clkend = rtclock();
-  double cpu_time = clkend - clkbegin;
-  cout << "Stencil time on CPU: " << cpu_time * 1000 << " msec" << endl;
+  double cpu_time = (clkend - clkbegin) * 1000;
+  cout << "Stencil time on CPU: " << cpu_time << " msec" << endl;
 
   float *d_in;
   cudaCheckError(cudaMalloc(&d_in, SIZE * sizeof(float)));
@@ -191,7 +191,7 @@ int main() {
 
   float kernel_time;
   cudaCheckError(cudaEventElapsedTime(&kernel_time, start, end));
-  std::cout << "Kernel 1 time (ms): " << kernel_time << "\n";
+  std::cout << "Kernel 1 time (ms): " << kernel_time << ", Speedup: " << cpu_time / kernel_time << endl;
 
   std::fill_n(h_out, SIZE, 0.0);
 
@@ -205,7 +205,7 @@ int main() {
   check_result(h_out_serial, h_out, N);
 
   cudaCheckError(cudaEventElapsedTime(&kernel_time, start, end));
-  std::cout << "Kernel 2 time (ms): " << kernel_time << "\n";
+  std::cout << "Kernel 2 time (ms): " << kernel_time << ", Speedup: " << cpu_time / kernel_time << endl;
 
   cudaCheckError(cudaEventDestroy(start));
   cudaCheckError(cudaEventDestroy(end));
