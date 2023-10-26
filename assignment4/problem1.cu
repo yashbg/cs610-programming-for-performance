@@ -213,10 +213,39 @@ int main() {
     cout << "Kernel 2 (block size = " << block_rows << ") time (ms): " << kernel_time << ", Speedup: " << cpu_time / kernel_time << endl << endl;
   }
 
+  float *h_in_pinned;
+  cudaCheckError(cudaHostAlloc(&h_in_pinned, SIZE * sizeof(float),
+                               cudaHostAllocDefault));
+  float *h_out_pinned;
+  cudaCheckError(cudaHostAlloc(&h_out_pinned, SIZE * sizeof(float),
+                               cudaHostAllocDefault));
+
+  for (int i = 0; i < SIZE; i++) {
+    h_in_pinned[i] = h_in[i];
+  }
+  std::fill_n(h_out_pinned, SIZE, 0.0);
+
+  cudaCheckError(cudaMemcpy(d_in, h_in_pinned, SIZE * sizeof(float),
+                            cudaMemcpyHostToDevice));
+
+  cudaCheckError(cudaEventRecord(start));
+  kernel2<<<dimGrid, dimBlock>>>(d_in, d_out);
+  cudaCheckError(cudaEventRecord(end));
+  cudaCheckError(cudaEventSynchronize(end));
+
+  cudaCheckError(cudaMemcpy(h_out_pinned, d_out, SIZE * sizeof(float),
+                            cudaMemcpyDeviceToHost));
+  check_result(h_out_serial, h_out, N);
+
+  cudaCheckError(cudaEventElapsedTime(&kernel_time, start, end));
+  cout << "Kernel 2 (pinned memory) time (ms): " << kernel_time << ", Speedup: " << cpu_time / kernel_time << endl << endl;
+
   cudaCheckError(cudaEventDestroy(start));
   cudaCheckError(cudaEventDestroy(end));
   cudaCheckError(cudaFree(d_in));
   cudaCheckError(cudaFree(d_out));
+  cudaCheckError(cudaFreeHost(h_in_pinned));
+  cudaCheckError(cudaFreeHost(h_out_pinned));
 
   free(h_in);
   free(h_out_serial);
