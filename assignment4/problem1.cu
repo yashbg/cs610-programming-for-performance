@@ -1,4 +1,4 @@
-// nvcc -ccbin /usr/bin/g++-10 -lineinfo -res-usage -arch=sm_80 -std=c++11 problem1.cu -o problem1
+// nvcc -ccbin /usr/bin/g++-10 -lineinfo -res-usage -arch=sm\_80 -std=c++11 190997-prob1.cu -o 190997-prob1
 
 #include <cmath>
 #include <cstdlib>
