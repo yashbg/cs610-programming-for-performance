@@ -240,12 +240,33 @@ int main() {
   cudaCheckError(cudaEventElapsedTime(&kernel_time, start, end));
   cout << "Kernel 2 (pinned memory) time (ms): " << kernel_time << ", Speedup: " << cpu_time / kernel_time << endl << endl;
 
+  float *in_uvm;
+  cudaCheckError(cudaMallocManaged(&in_uvm, SIZE * sizeof(float)));
+  float *out_uvm;
+  cudaCheckError(cudaMallocManaged(&out_uvm, SIZE * sizeof(float)));
+  for (int i = 0; i < SIZE; i++) {
+    in_uvm[i] = h_in[i];
+  }
+  std::fill_n(out_uvm, SIZE, 0.0);
+
+  cudaCheckError(cudaEventRecord(start));
+  kernel2<<<dimGrid, dimBlock>>>(in_uvm, out_uvm);
+  cudaCheckError(cudaEventRecord(end));
+  cudaCheckError(cudaEventSynchronize(end));
+
+  check_result(h_out_serial, out_uvm, N);
+
+  cudaCheckError(cudaEventElapsedTime(&kernel_time, start, end));
+  cout << "Kernel 2 (uvm) time (ms): " << kernel_time << ", Speedup: " << cpu_time / kernel_time << endl << endl;
+
   cudaCheckError(cudaEventDestroy(start));
   cudaCheckError(cudaEventDestroy(end));
   cudaCheckError(cudaFree(d_in));
   cudaCheckError(cudaFree(d_out));
   cudaCheckError(cudaFreeHost(h_in_pinned));
   cudaCheckError(cudaFreeHost(h_out_pinned));
+  cudaCheckError(cudaFree(in_uvm));
+  cudaCheckError(cudaFree(out_uvm));
 
   free(h_in);
   free(h_out_serial);
