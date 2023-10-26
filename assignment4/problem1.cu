@@ -162,7 +162,7 @@ int main() {
   stencil(h_in, h_out_serial);
   double clkend = rtclock();
   double cpu_time = (clkend - clkbegin) * 1000;
-  cout << "Stencil time on CPU: " << cpu_time << " msec" << endl;
+  cout << "Stencil time on CPU: " << cpu_time << " msec" << endl << endl;
 
   float *d_in;
   cudaCheckError(cudaMalloc(&d_in, SIZE * sizeof(float)));
@@ -191,21 +191,27 @@ int main() {
 
   float kernel_time;
   cudaCheckError(cudaEventElapsedTime(&kernel_time, start, end));
-  std::cout << "Kernel 1 time (ms): " << kernel_time << ", Speedup: " << cpu_time / kernel_time << endl;
+  cout << "Kernel 1 time (ms): " << kernel_time << ", Speedup: " << cpu_time / kernel_time << endl << endl;
 
-  std::fill_n(h_out, SIZE, 0.0);
+  int block_rows_arr[] = {1, 2, 4, 8};
+  for (auto block_rows : block_rows_arr) {
+    std::fill_n(h_out, SIZE, 0.0);
 
-  cudaCheckError(cudaEventRecord(start));
-  kernel2<<<dimGrid, dimBlock>>>(d_in, d_out);
-  cudaCheckError(cudaEventRecord(end));
-  cudaCheckError(cudaEventSynchronize(end));
+    dim3 dimBlock(TILE_DIM, block_rows, BLOCK_DIM_Z);
+    dim3 dimGrid(N / TILE_DIM, N / TILE_DIM, N / BLOCK_DIM_Z);
 
-  cudaCheckError(cudaMemcpy(h_out, d_out, SIZE * sizeof(float),
-                            cudaMemcpyDeviceToHost));
-  check_result(h_out_serial, h_out, N);
+    cudaCheckError(cudaEventRecord(start));
+    kernel2<<<dimGrid, dimBlock>>>(d_in, d_out);
+    cudaCheckError(cudaEventRecord(end));
+    cudaCheckError(cudaEventSynchronize(end));
 
-  cudaCheckError(cudaEventElapsedTime(&kernel_time, start, end));
-  std::cout << "Kernel 2 time (ms): " << kernel_time << ", Speedup: " << cpu_time / kernel_time << endl;
+    cudaCheckError(cudaMemcpy(h_out, d_out, SIZE * sizeof(float),
+                              cudaMemcpyDeviceToHost));
+    check_result(h_out_serial, h_out, N);
+
+    cudaCheckError(cudaEventElapsedTime(&kernel_time, start, end));
+    cout << "Kernel 2 (block size = " << block_rows << ") time (ms): " << kernel_time << ", Speedup: " << cpu_time / kernel_time << endl << endl;
+  }
 
   cudaCheckError(cudaEventDestroy(start));
   cudaCheckError(cudaEventDestroy(end));
