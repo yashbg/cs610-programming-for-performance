@@ -28,6 +28,7 @@ inline void gpuAssert(cudaError_t code, const char* file, int line, bool abort =
   }
 }
 
+// naive CUDA kernel
 __global__ void kernel1(const float *in, float *out) {
   int block_rows = blockDim.y;
   int x = blockIdx.x * TILE_DIM + threadIdx.x;
@@ -47,6 +48,7 @@ __global__ void kernel1(const float *in, float *out) {
   }
 }
 
+// shared memory tiling
 __global__ void kernel2(const float *in, float *out) {
   __shared__ float tile[TILE_DIM * TILE_DIM * BLOCK_DIM_Z];
 
@@ -164,7 +166,7 @@ int main() {
   double cpu_time = (clkend - clkbegin) * 1000;
   cout << "Stencil time on CPU: " << cpu_time << " msec" << endl << endl;
 
-  // naïve CUDA kernel
+  // naive CUDA kernel
 
   float *d_in;
   cudaCheckError(cudaMalloc(&d_in, SIZE * sizeof(float)));
